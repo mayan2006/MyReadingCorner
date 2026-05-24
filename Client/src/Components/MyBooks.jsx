@@ -117,7 +117,16 @@ export default function MyBooks() {
       }}
     >
       <Stack spacing={1} sx={{ mb: 3, width: "100%", direction: "rtl", textAlign: "right" }}>
-        <Typography variant="h3" sx={{ color: "#1f5d99", fontWeight: 700, display: "block", width: "100%" }}>
+        <Typography
+          variant="h3"
+          sx={{
+            color: "#1f5d99",
+            fontWeight: 700,
+            display: "block",
+            width: "100%",
+            fontSize: { xs: "1.35rem", sm: "1.75rem", md: "2rem" }
+          }}
+        >
           ספרים שכתבתי
         </Typography>
         <Typography sx={{ color: "#5d7ea0", display: "block", width: "100%", maxWidth: 720, lineHeight: 1.65 }}>
@@ -145,7 +154,7 @@ export default function MyBooks() {
             xs: "minmax(0, 1fr)",
             sm: "repeat(auto-fill, minmax(min(100%, 280px), 1fr))"
           },
-          gap: 3,
+          gap: { xs: 2, md: 3 },
           alignItems: "stretch",
           mt: myBooks.length ? 1 : 0
         }}

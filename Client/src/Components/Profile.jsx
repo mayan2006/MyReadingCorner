@@ -105,6 +105,8 @@ export default function Profile() {
           : "radial-gradient(1200px 600px at 80% -10%, #dbeaff 0%, transparent 60%), radial-gradient(900px 500px at 0% 10%, #ffe5ef 0%, transparent 55%), linear-gradient(180deg, #f7faff 0%, #eef4ff 100%)",
         py: { xs: 4, md: 7 },
         px: { xs: 2, md: 4 },
+        overflowX: "hidden",
+        boxSizing: "border-box",
       }}
     >
       <Box sx={{ width: "100%", maxWidth: 1200, mx: "auto" }}>
@@ -180,6 +182,7 @@ export default function Profile() {
                 variant="h3"
                 sx={{
                   fontWeight: 800, lineHeight: 1.15,
+                  fontSize: { xs: "1.45rem", sm: "1.85rem", md: "2.125rem" },
                   background: "linear-gradient(90deg, #1f5d99 0%, #7c5cff 100%)",
                   WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
                   mb: 1,
@@ -239,13 +242,23 @@ export default function Profile() {
                     sx={{
                       height: 32,
                       boxSizing: "border-box",
+                      maxWidth: "100%",
                       bgcolor: "#eef3ff",
                       color: "#1f5d99",
                       fontWeight: 700,
                       fontSize: "0.8125rem",
-                      "& .MuiChip-label": { px: 1.25, py: 0, lineHeight: 1.2 },
+                      "& .MuiChip-label": {
+                        px: 1.25,
+                        py: 0,
+                        lineHeight: 1.2,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        maxWidth: { xs: "72vw", sm: 280 }
+                      },
                     }}
-                  />
+                  >
+                  </Chip>
                 )}
                 {currentUser?.email && (
                   <Chip
@@ -254,10 +267,19 @@ export default function Profile() {
                     sx={{
                       height: 32,
                       boxSizing: "border-box",
+                      maxWidth: "100%",
                       borderColor: "#d7e7f7",
                       color: "#5d7ea0",
                       fontSize: "0.8125rem",
-                      "& .MuiChip-label": { px: 1.25, py: 0, lineHeight: 1.2 },
+                      "& .MuiChip-label": {
+                        px: 1.25,
+                        py: 0,
+                        lineHeight: 1.2,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        maxWidth: { xs: "72vw", sm: 320 }
+                      },
                     }}
                   />
                 )}
@@ -283,7 +305,7 @@ export default function Profile() {
                 elevation={0}
                 sx={{
                   position: "relative", overflow: "hidden",
-                  height: 200, cursor: "pointer", borderRadius: 5,
+                  height: { xs: 180, sm: 200 }, cursor: "pointer", borderRadius: 5,
                   border: "1px solid rgba(31,93,153,0.10)",
                   background: "linear-gradient(180deg, #ffffff 0%, #f6faff 100%)",
                   boxShadow: "0 14px 30px -18px rgba(31,93,153,0.45)",

@@ -95,7 +95,7 @@ const BooksPage = ({ selectedCategory }) => {
   }, [subjectCodeFilter, selectedCategory]);
 
   return (
-    <Container maxWidth={false} sx={{ width: "100%", px: { xs: 2, md: 4 }, py: { xs: 3, md: 5 } }}>
+    <Container maxWidth={false} sx={{ width: "100%", maxWidth: "100%", overflowX: "hidden", px: { xs: 2, md: 4 }, py: { xs: 3, md: 5 }, boxSizing: "border-box" }}>
       <Box
         sx={{
           textAlign: "center",
@@ -154,13 +154,13 @@ const BooksPage = ({ selectedCategory }) => {
             background:
               "linear-gradient(135deg, rgba(255,253,248,0.95) 0%, rgba(245,251,255,0.9) 100%)",
             display: "flex",
-            flexWrap: "wrap",
-            alignItems: "center",
+            flexDirection: { xs: "column", sm: "row" },
+            alignItems: { xs: "stretch", sm: "center" },
             justifyContent: "space-between",
             gap: 1.5
           }}
         >
-          <Typography sx={{ fontFamily: '"Heebo", sans-serif', fontWeight: 700, color: "#1f5d99", flex: "1 1 220px" }}>
+          <Typography sx={{ fontFamily: '"Heebo", sans-serif', fontWeight: 700, color: "#1f5d99", flex: "1 1 auto", textAlign: { xs: "center", sm: "right" } }}>
             ספרים בנושא: {subjectLabelParam || subjectCodeFilter}
           </Typography>
           <Button

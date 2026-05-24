@@ -186,7 +186,7 @@ const BookCard = ({ book, onDelete, onLikeChange, onEdit }) => {
           alt={book.title || ""}
           sx={{
             width: "100%",
-            height: 180,
+            height: { xs: 160, sm: 180 },
             objectFit: "cover",
             borderRadius: 2,
             mb: 1.5,
@@ -198,7 +198,7 @@ const BookCard = ({ book, onDelete, onLikeChange, onEdit }) => {
         <Box
           sx={{
             width: "100%",
-            height: 120,
+            height: { xs: 100, sm: 120 },
             mb: 1.5,
             borderRadius: 2,
             display: "flex",
@@ -217,7 +217,7 @@ const BookCard = ({ book, onDelete, onLikeChange, onEdit }) => {
         sx={{
           fontFamily: '"Frank Ruhl Libre", "David", serif',
           fontWeight: 800,
-          fontSize: "1.35rem",
+          fontSize: { xs: "1.15rem", sm: "1.35rem" },
           lineHeight: 1.2,
           width: "100%",
           wordBreak: "break-word",

@@ -52,6 +52,10 @@ export default function Login({ onLogin }) {
         justifyContent: "center",
         alignItems: "center",
         direction: "rtl",
+        px: { xs: 2, sm: 3 },
+        py: { xs: 3, sm: 0 },
+        boxSizing: "border-box",
+        overflowX: "hidden",
         background:
           "radial-gradient(circle at top, rgba(116, 183, 255, 0.2), transparent 28%), linear-gradient(180deg, #f5fbff 0%, #e7f3ff 100%)"
       }}
@@ -59,8 +63,8 @@ export default function Login({ onLogin }) {
       <Paper
         elevation={0}
         sx={{
-          padding: 4,
-          width: 430,
+          p: { xs: 2.5, sm: 4 },
+          width: { xs: "100%", sm: 430 },
           maxWidth: "100%",
           borderRadius: 4,
           border: "1px solid #d7e7f7",
@@ -68,7 +72,12 @@ export default function Login({ onLogin }) {
           background: "linear-gradient(180deg, #ffffff 0%, #f3f9ff 100%)"
         }}
       >
-        <Typography variant="h4" mb={1} align="center" sx={{ color: "#1f5d99", fontWeight: 700 }}>
+        <Typography
+          variant="h4"
+          mb={1}
+          align="center"
+          sx={{ color: "#1f5d99", fontWeight: 700, fontSize: { xs: "1.5rem", sm: "2rem" } }}
+        >
           כניסה לאתר
         </Typography>
         <Typography sx={{ color: "#5d7ea0", mb: 2 }} align="center">

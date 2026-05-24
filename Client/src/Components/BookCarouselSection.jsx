@@ -30,8 +30,10 @@ export default function BookCarouselSection({ title, subtitle, books, bookCardPr
   const scrollByDirection = (directionSign) => {
     const el = scrollerRef.current;
     if (!el) return;
-    const step = CARD_WIDTH_PX + 20;
-    el.scrollBy({ left: directionSign * step, behavior: "smooth" });
+    const firstCard = el.firstElementChild;
+    const cardW = firstCard?.getBoundingClientRect().width || CARD_WIDTH_PX;
+    const gap = 20;
+    el.scrollBy({ left: directionSign * (cardW + gap), behavior: "smooth" });
   };
 
   if (!books?.length) return null;
@@ -134,7 +136,7 @@ export default function BookCarouselSection({ title, subtitle, books, bookCardPr
             <Box
               key={book.seriesKey || book.bookCode}
               sx={{
-                width: CARD_WIDTH_PX,
+                width: { xs: "min(85vw, 280px)", sm: CARD_WIDTH_PX },
                 maxWidth: "85vw",
                 flexShrink: 0,
                 minWidth: 0,

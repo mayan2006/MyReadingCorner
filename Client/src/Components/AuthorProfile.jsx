@@ -20,7 +20,7 @@ const booksGridSx = {
     xs: "minmax(0, 1fr)",
     sm: "repeat(auto-fill, minmax(min(100%, 280px), 1fr))"
   },
-  gap: 3,
+  gap: { xs: 2, md: 3 },
   alignItems: "stretch"
 };
 
@@ -111,9 +111,9 @@ export default function AuthorProfile() {
             src={avatarSrc || undefined}
             alt=""
             sx={{
-              width: 120,
-              height: 120,
-              fontSize: "2.5rem",
+              width: { xs: 96, sm: 120 },
+              height: { xs: 96, sm: 120 },
+              fontSize: { xs: "2rem", sm: "2.5rem" },
               bgcolor: "#1f5d99",
               border: "3px solid #dbeaf9"
             }}
@@ -121,7 +121,7 @@ export default function AuthorProfile() {
             {!avatarSrc ? displayName.charAt(0) : null}
           </Avatar>
           <Box sx={{ flex: 1, minWidth: 0, textAlign: "right", width: "100%" }}>
-            <Typography variant="h4" sx={{ fontWeight: 800, color: "#1f5d99", mb: 0.5, textAlign: "right" }}>
+            <Typography variant="h4" sx={{ fontWeight: 800, color: "#1f5d99", mb: 0.5, textAlign: "right", fontSize: { xs: "1.35rem", sm: "2rem" } }}>
               {displayName}
             </Typography>
             <Typography variant="body2" sx={{ color: "#5d7ea0", textAlign: "right" }}>
@@ -133,7 +133,7 @@ export default function AuthorProfile() {
           </Box>
         </Box>
 
-        <Typography variant="h5" sx={{ fontWeight: 700, color: "#1f5d99", mb: 2, textAlign: "right", width: "100%" }}>
+        <Typography variant="h5" sx={{ fontWeight: 700, color: "#1f5d99", mb: 2, textAlign: "right", width: "100%", fontSize: { xs: "1.15rem", sm: "1.5rem" } }}>
           ספרים שכתב/ה
         </Typography>
         {writtenBooks.length === 0 ? (
@@ -152,7 +152,7 @@ export default function AuthorProfile() {
 
         <Divider sx={{ my: 2 }} />
 
-        <Typography variant="h5" sx={{ fontWeight: 700, color: "#1f5d99", mb: 1, textAlign: "right", width: "100%" }}>
+        <Typography variant="h5" sx={{ fontWeight: 700, color: "#1f5d99", mb: 1, textAlign: "right", width: "100%", fontSize: { xs: "1.15rem", sm: "1.5rem" } }}>
           ספרים שאהב/ה
         </Typography>
         <Typography variant="body2" sx={{ color: "#5d7ea0", mb: 2, textAlign: "right", width: "100%", maxWidth: 720 }}>

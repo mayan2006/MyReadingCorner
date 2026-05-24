@@ -63,9 +63,10 @@ export default function BackToHomeBar() {
           py: { xs: 1.25, md: 1.5 },
           display: "flex",
           alignItems: "center",
-          justifyContent: "flex-start",
+          justifyContent: { xs: "stretch", sm: "flex-start" },
+          flexDirection: { xs: "column", sm: "row" },
           flexWrap: "wrap",
-          gap: 1.5,
+          gap: { xs: 1, sm: 1.5 },
           direction: "rtl"
         }}
       >
@@ -73,12 +74,18 @@ export default function BackToHomeBar() {
           type="button"
           disableElevation
           size="medium"
+          fullWidth
           onClick={goBackInHistory}
           startIcon={<ArrowBackIosRoundedIcon sx={{ fontSize: 18 }} aria-hidden />}
           aria-label="חזרה לעמוד הקודם בהיסטוריה"
-          sx={pillButtonSx}
+          sx={{ ...pillButtonSx, width: { xs: "100%", sm: "auto" } }}
         >
-          חזרה לעמוד הקודם
+          <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>
+            חזרה לעמוד הקודם
+          </Box>
+          <Box component="span" sx={{ display: { xs: "inline", sm: "none" } }}>
+            חזרה
+          </Box>
         </Button>
 
         <Button
@@ -86,8 +93,9 @@ export default function BackToHomeBar() {
           to="/"
           disableElevation
           size="medium"
+          fullWidth
           startIcon={<HomeRoundedIcon sx={{ fontSize: 22 }} />}
-          sx={pillButtonSx}
+          sx={{ ...pillButtonSx, width: { xs: "100%", sm: "auto" } }}
         >
           חזרה לדף הבית
         </Button>

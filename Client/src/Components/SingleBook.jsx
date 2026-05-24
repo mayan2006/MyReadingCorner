@@ -276,12 +276,12 @@ const SingleBook = () => {
   const bodyIsHebrew = textContainsHebrew(book.content);
 
   return (
-    <Box sx={{ py: { xs: 3, md: 6 }, px: { xs: 2, md: 3 } }}>
-      <Container maxWidth={false} sx={{ width: "100%" }}>
+    <Box sx={{ py: { xs: 2, md: 6 }, px: { xs: 1.5, sm: 2, md: 3 }, overflowX: "hidden", boxSizing: "border-box" }}>
+      <Container maxWidth={false} sx={{ width: "100%", maxWidth: "100%", px: { xs: 0, sm: 1 } }}>
         <Paper
           elevation={0}
           sx={{
-            p: { xs: 3, md: 5 },
+            p: { xs: 2, sm: 3, md: 5 },
             borderRadius: 4,
             border: "1px solid #d8e8f8",
             background: "linear-gradient(180deg, #ffffff 0%, #f3f9ff 100%)",
@@ -332,7 +332,7 @@ const SingleBook = () => {
               textAlign: "center",
               fontFamily: '"Frank Ruhl Libre", "David", serif',
               fontWeight: 900,
-              fontSize: { xs: "1.55rem", sm: "2rem", md: "2.35rem" },
+              fontSize: { xs: "1.35rem", sm: "1.75rem", md: "2.35rem" },
               lineHeight: 1.2,
               letterSpacing: "0.01em",
               background: "linear-gradient(135deg, #1a2d4a 0%, #3a5a8a 48%, #a67c32 100%)",
@@ -370,9 +370,9 @@ const SingleBook = () => {
             dir={bodyIsHebrew ? "rtl" : "ltr"}
             sx={{
               mt: 0.5,
-              p: { xs: 2.25, sm: 3, md: 3.5 },
+              p: { xs: 1.75, sm: 2.25, md: 3.5 },
               borderRadius: 3,
-              textAlign: "center",
+              textAlign: bodyIsHebrew ? { xs: "right", sm: "center" } : { xs: "left", sm: "center" },
               direction: bodyIsHebrew ? "rtl" : "ltr",
               border: "1px solid rgba(219, 234, 249, 0.95)",
               borderInlineStart: "3px solid rgba(166, 124, 50, 0.42)",
@@ -387,13 +387,13 @@ const SingleBook = () => {
               sx={{
                 fontFamily: '"Heebo", "Segoe UI", sans-serif',
                 lineHeight: 1.9,
-                fontSize: { xs: "1.02rem", sm: "1.08rem", md: "1.1rem" },
+                fontSize: { xs: "1rem", sm: "1.08rem", md: "1.1rem" },
                 letterSpacing: bodyIsHebrew ? "0.02em" : "0.01em",
                 fontWeight: 400,
                 color: "#1a2d4a",
                 whiteSpace: "pre-wrap",
                 unicodeBidi: "plaintext",
-                textAlign: "center",
+                textAlign: bodyIsHebrew ? { xs: "right", sm: "center" } : { xs: "left", sm: "center" },
               }}
             >
               {book.content}
@@ -404,8 +404,8 @@ const SingleBook = () => {
           <Box
             sx={{
               display: "flex",
-              flexDirection: "row",
-              alignItems: "flex-start",
+              flexDirection: { xs: "column", sm: "row" },
+              alignItems: "center",
               justifyContent: "center",
               gap: 2,
               mt: 3,

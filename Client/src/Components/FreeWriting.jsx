@@ -134,7 +134,7 @@ const fieldSx = {
   },
   "& .MuiInputLabel-root": {
     transformOrigin: "top right",
-    right: 28,
+    right: { xs: 14, sm: 28 },
     left: "auto",
     fontFamily: fwInput,
     fontWeight: 600,
@@ -584,10 +584,12 @@ export default function FreeWritingForm() {
         background:
           "radial-gradient(1100px 500px at 80% -10%, rgba(116,183,255,0.28), transparent 60%), radial-gradient(800px 400px at 0% 10%, rgba(180,210,255,0.25), transparent 60%), linear-gradient(180deg, #f5fbff 0%, #e7f3ff 100%)",
         py: { xs: 3, md: 7 },
-        px: { xs: 1.5, md: 0 }
+        px: { xs: 2, sm: 2.5, md: 0 },
+        overflowX: "hidden",
+        boxSizing: "border-box"
       }}
     >
-      <Container maxWidth="sm">
+      <Container maxWidth="sm" sx={{ px: { xs: 0.5, sm: 2 } }}>
         {/* Header card */}
         <Stack alignItems="center" spacing={1.2} sx={{ mb: 3 }}>
           <Box
@@ -607,7 +609,7 @@ export default function FreeWritingForm() {
           <Typography
             variant="h4"
             component="h1"
-            sx={{ fontWeight: 800, color: "#1f5d99", textAlign: "center", letterSpacing: "-0.02em" }}
+            sx={{ fontWeight: 800, color: "#1f5d99", textAlign: "center", letterSpacing: "-0.02em", fontSize: { xs: "1.35rem", sm: "2rem" } }}
           >
             {isEditMode ? "עריכת כתיבה" : "הוספת כתיבה חופשית"}
           </Typography>
@@ -933,7 +935,8 @@ export default function FreeWritingForm() {
                 label="תוכן הסיפור"
                 name="content"
                 multiline
-                rows={9}
+                minRows={6}
+                maxRows={14}
                 value={form.content}
                 onChange={handleChange}
                 required

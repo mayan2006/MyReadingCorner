@@ -80,7 +80,7 @@ function AppShell({
         <BackToHomeBar />
       )}
       <ScrollToTopOnRoute />
-      <Box component="main" sx={{ flex: "1 1 auto", width: "100%" }}>
+      <Box component="main" sx={{ flex: "1 1 auto", width: "100%", maxWidth: "100%", overflowX: "hidden" }}>
         <Routes>
           <Route path="/" element={<BooksPage selectedCategory={selectedCategory} />} />
           <Route path="/books/:bookCode" element={<SingleBook />} />

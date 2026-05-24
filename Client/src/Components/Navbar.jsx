@@ -257,7 +257,7 @@ export default function Navbar({ currentUser, onLogout, selectedCategory, onCate
           justifyContent: "space-between",
           alignItems: "center",
           gap: { xs: 1, sm: 2 },
-          minHeight: { xs: 84, sm: 96 },
+          minHeight: { xs: 72, sm: 84, md: 96 },
           px: { xs: 1.5, sm: 3 },
           flexWrap: { xs: "wrap", md: "nowrap" }
         }}
@@ -320,7 +320,7 @@ export default function Navbar({ currentUser, onLogout, selectedCategory, onCate
                 elevation: 0,
                 sx: {
                   mt: 1.25,
-                  minWidth: 272,
+                  minWidth: { xs: "min(100vw - 32px, 320px)", sm: 272 },
                   maxWidth: 320,
                   overflow: "hidden",
                   borderRadius: 3,
@@ -647,7 +647,7 @@ export default function Navbar({ currentUser, onLogout, selectedCategory, onCate
               sx={{
                 fontFamily: '"Frank Ruhl Libre", "David", serif',
                 fontWeight: 900,
-                fontSize: { xs: "1.4rem", sm: "1.85rem" },
+                fontSize: { xs: "1.15rem", sm: "1.4rem", md: "1.85rem" },
                 lineHeight: 1.1,
                 letterSpacing: "0.01em",
                 display: "block",
@@ -667,7 +667,7 @@ export default function Navbar({ currentUser, onLogout, selectedCategory, onCate
                 fontSize: { xs: "0.7rem", sm: "0.78rem" },
                 color: "#8b6914",
                 letterSpacing: "0.18em",
-                display: "block",
+                display: { xs: "none", sm: "block" },
                 mt: 0.25
               }}
             >
@@ -680,7 +680,7 @@ export default function Navbar({ currentUser, onLogout, selectedCategory, onCate
             src="/images/logo.png"
             alt="לוגו"
             sx={{
-              height: { xs: 60, sm: 78 },
+              height: { xs: 48, sm: 60, md: 78 },
               width: "auto",
               maxWidth: 180,
               objectFit: "contain",

@@ -140,6 +140,9 @@ export default function ManagerSubjectApprovals() {
       sx={{
         minHeight: "100vh",
         py: { xs: 3, md: 5 },
+        px: { xs: 2, md: 0 },
+        overflowX: "hidden",
+        boxSizing: "border-box",
         background:
           "radial-gradient(circle at top, rgba(116, 183, 255, 0.18), transparent 28%), linear-gradient(180deg, #f5fbff 0%, #e7f3ff 100%)"
       }}
@@ -209,8 +212,8 @@ export default function ManagerSubjectApprovals() {
               <CircularProgress />
             </Box>
           ) : (
-            <TableContainer>
-              <Table size="small">
+            <TableContainer sx={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+              <Table size="small" sx={{ minWidth: { xs: 640, md: "auto" } }}>
                 <TableHead sx={{ bgcolor: "#f0f7ff" }}>
                   <TableRow>
                     <TableCell sx={{ fontWeight: 700, direction: "rtl" }}>שם הנושא</TableCell>

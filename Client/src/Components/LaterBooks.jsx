@@ -198,7 +198,7 @@ export default function LaterBooks() {
             xs: "minmax(0, 1fr)",
             sm: "repeat(auto-fill, minmax(min(100%, 280px), 1fr))"
           },
-          gap: 3,
+          gap: { xs: 2, md: 3 },
           alignItems: "stretch",
           mt: books.length ? 1 : 0
         }}
