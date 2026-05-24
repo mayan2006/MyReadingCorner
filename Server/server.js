@@ -9,8 +9,30 @@ const app = express();
 const MONGODB_URI =
   process.env.MONGODB_URI || 'mongodb://localhost:27017/mySiteDB';
 
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:4173',
+  'https://myreadingcorner-1.onrender.com',
+  ...(process.env.CLIENT_URL || '')
+    .split(',')
+    .map((url) => url.trim())
+    .filter(Boolean),
+];
+
 app.use(express.json());
-app.use(cors());
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(null, false);
+      }
+    },
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  })
+);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const bookRouter = require('../Server/Routes/BookRoutrer')
