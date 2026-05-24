@@ -1,42 +1,39 @@
+:root {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  color: #16324f;
+  background: #eef7ff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  margin: 0;
+  min-height: 100%;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+body {
+  background:
+    radial-gradient(circle at top, rgba(116, 183, 255, 0.18), transparent 30%),
+    linear-gradient(180deg, #f5fbff 0%, #e7f3ff 100%);
+  color: #16324f;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+a {
+  color: inherit;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+#root {
+  min-height: 100vh;
 }
 
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
+/* רקע אתר כהה עדין — מופעל מפרופיל (נשמר ב-localStorage) */
+html.library-site-dark-bg,
+html.library-site-dark-bg body {
+  background:
+    radial-gradient(ellipse 120% 80% at 50% -20%, rgba(55, 65, 90, 0.35), transparent 50%),
+    linear-gradient(180deg, #1c1c22 0%, #15151a 45%, #0f0f12 100%);
 }
