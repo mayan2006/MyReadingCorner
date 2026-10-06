@@ -1,11 +1,9 @@
-import axios from "axios";
-import { API_BASE_URL } from "./apiBase";
+import { api } from "./apiBase";
 
 export const saveRating = async (body) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/rating`, {
+    const response = await api.post("/rating", {
       bookCode: body.bookCode,
-      userCode: body.userCode,
       stars: body.stars
     });
     return response.data;
@@ -16,16 +14,16 @@ export const saveRating = async (body) => {
 
 export const getAverageRatingByBookCode = async (bookCode) => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/rating/book/${bookCode}/average`);
+    const response = await api.get(`/rating/book/${bookCode}/average`);
     return response.data;
   } catch (error) {
     return error.response?.data || error.message;
   }
 };
 
-export const getUserRatingByBookCode = async (bookCode, userCode) => {
+export const getUserRatingByBookCode = async (bookCode) => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/rating/book/${bookCode}/user/${userCode}`);
+    const response = await api.get(`/rating/book/${bookCode}/me`);
     return response.data;
   } catch (error) {
     return error.response?.data || error.message;

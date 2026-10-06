@@ -40,11 +40,11 @@ const getResponsesByBookCode = async (req, res) => {
 const addResponse = async (req, res) => {
   try {
     const bookCode = (req.body.bookCode || "").trim();
-    const userCode = (req.body.userCode || "").trim();
+    const userCode = req.user.userCode;
     const contentRaw = req.body.content;
 
-    if (!bookCode || !userCode) {
-      return res.status(400).send({ message: "bookCode and userCode are required" });
+    if (!bookCode) {
+      return res.status(400).send({ message: "bookCode is required" });
     }
     const content = typeof contentRaw === "string" ? contentRaw.trim() : "";
     if (!content.length) {
@@ -82,16 +82,13 @@ const addResponse = async (req, res) => {
 const deleteResponse = async (req, res) => {
   try {
     const { id } = req.params;
-    const userCode = (req.query.userCode || req.body.userCode || "").trim();
-    if (!userCode) {
-      return res.status(400).send({ message: "userCode is required" });
-    }
+    const userCode = req.user.userCode;
 
     const doc = await BookResponse.findById(id);
     if (!doc) {
       return res.status(404).send({ message: "Response not found" });
     }
-    if (doc.userCode !== userCode) {
+    if (doc.userCode !== userCode && req.user.role !== "manager") {
       return res.status(403).send({ message: "Forbidden" });
     }
 

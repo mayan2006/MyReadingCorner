@@ -12,22 +12,19 @@ import EditIcon from "@mui/icons-material/Edit";
 import BookmarkRoundedIcon from "@mui/icons-material/BookmarkRounded";
 import VerifiedRoundedIcon from "@mui/icons-material/VerifiedRounded";
 import { useNavigate } from "react-router-dom";
-import { getAllUsers, uploadUserImage } from "../services/UserAPI";
+import { uploadUserImage } from "../services/UserAPI";
 import { API_BASE_URL } from "../services/apiBase";
 import { useSiteBackground } from "../context/SiteBackgroundContext.jsx";
+import { useAuth } from "../context/AuthContext.jsx";
 
 export default function Profile() {
   const navigate = useNavigate();
   const { darkBg, toggleDarkBg } = useSiteBackground();
+  const { currentUser, setCurrentUser } = useAuth();
   const fileInputRef = useRef(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadMessage, setUploadMessage] = useState("");
   const [uploadError, setUploadError] = useState("");
-  const [currentUser, setCurrentUser] = useState(() => {
-    const raw = localStorage.getItem("currentUser") || localStorage.getItem("user");
-    if (!raw) return null;
-    try { return JSON.parse(raw); } catch { return null; }
-  });
 
   const items = [
     { title: "ספרים אהובים", path: "/favorites", icon: <FavoriteRoundedIcon />, hue: "#ff6b9a", desc: "הספרים שאהבת במיוחד" },
@@ -46,18 +43,8 @@ export default function Profile() {
   ];
 
   useEffect(() => {
-    const syncUserFromDb = async () => {
-      if (!currentUser?.userCode) return;
-      const users = await getAllUsers();
-      if (!Array.isArray(users)) return;
-      const freshUser = users.find((u) => u.userCode === currentUser.userCode);
-      if (!freshUser) return;
-      const { password: _p, ...safeUser } = freshUser;
-      setCurrentUser(safeUser);
-      localStorage.setItem("currentUser", JSON.stringify(safeUser));
-      window.dispatchEvent(new CustomEvent("library-current-user-updated"));
-    };
-    syncUserFromDb();
+    setUploadMessage("");
+    setUploadError("");
   }, [currentUser?.userCode]);
 
   const profileImageSrc = currentUser?.img
@@ -72,12 +59,10 @@ export default function Profile() {
     if (!currentUser?.userCode) { setUploadError("לא נמצא משתמש מחובר."); return; }
     setUploadMessage(""); setUploadError(""); setIsUploading(true);
     try {
-      const response = await uploadUserImage(currentUser.userCode, file);
+      const response = await uploadUserImage(file);
       if (response?.user) {
         const { password: _p, ...safeUser } = response.user;
         setCurrentUser(safeUser);
-        localStorage.setItem("currentUser", JSON.stringify(safeUser));
-        window.dispatchEvent(new CustomEvent("library-current-user-updated"));
         setUploadMessage("תמונת הפרופיל עודכנה בהצלחה.");
       } else {
         setUploadError(response?.message || "העלאת התמונה נכשלה.");

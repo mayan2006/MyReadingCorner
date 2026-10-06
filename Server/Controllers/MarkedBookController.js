@@ -1,68 +1,92 @@
-const MarkedBook=require('../Models/MarkedBookModel')
+const MarkedBook = require("../Models/MarkedBookModel");
+const { isOwnerOrManager } = require("../middleware/authorize");
 
 const getAllMarkedBook = async (req, res) => {
     try {
-        const allMarkedBooks = await MarkedBook.find()
-        res.status(200).send(allMarkedBooks)
+        const allMarkedBooks = await MarkedBook.find({ userCode: req.user.userCode });
+        res.status(200).send(allMarkedBooks);
+    } catch (err) {
+        res.status(500).send({ message: err?.message || "Internal server error" });
     }
-    catch (err) {
-        res.status(500).send("some error " + err)
-    }
-}
+};
+
 const getMarkedBookById = async (req, res) => {
     try {
-        const markedBook = await MarkedBook.findById(req.params.id)
-        res.status(200).send(markedBook)
-    }
-    catch (err) {
-        res.status(500).send("some error " + err)
-    }
-}
-
-const deleteMarkedBook= async (req, res) => {
-    try {
-        const filter = { bookCode: req.params.bookCode };
-        if (req.query.userCode) {
-            filter.userCode = req.query.userCode;
+        const markedBook = await MarkedBook.findById(req.params.id);
+        if (!markedBook) {
+            return res.status(404).send({ message: "markedBook not found" });
         }
+        if (!isOwnerOrManager(req, markedBook.userCode)) {
+            return res.status(403).send({ message: "אין הרשאה לבצע פעולה זו" });
+        }
+        res.status(200).send(markedBook);
+    } catch (err) {
+        res.status(500).send({ message: err?.message || "Internal server error" });
+    }
+};
 
-        const markedBook = await MarkedBook.deleteOne(filter)
-        res.status(200).send({ message: "markedBook deleted", result: markedBook })
+const deleteMarkedBook = async (req, res) => {
+    try {
+        const markedBook = await MarkedBook.deleteOne({
+            bookCode: req.params.bookCode,
+            userCode: req.user.userCode
+        });
+        res.status(200).send({ message: "markedBook deleted", result: markedBook });
+    } catch (err) {
+        res.status(500).send({ message: err?.message || "Internal server error" });
     }
-    catch (err) {
-        res.status(500).send("some error " + err)
-    }
-}
+};
+
 const addNewMarkedBook = async (req, res) => {
     try {
-        const { bookCode, userCode } = req.body;
+        const bookCode = req.body.bookCode;
+        const userCode = req.user.userCode;
+        if (!bookCode) {
+            return res.status(400).send({ message: "bookCode is required" });
+        }
         const existing = await MarkedBook.findOne({ bookCode, userCode });
         if (existing) {
             return res.status(200).send({
                 message: "Already marked",
-                markedBook: existing,
+                markedBook: existing
             });
         }
-        const newMarkedBook = new MarkedBook({ ...req.body });
+        const newMarkedBook = new MarkedBook({
+            bookCode,
+            name: req.body.name,
+            userCode,
+            date: req.body.date || new Date(),
+            bookStatus: req.body.bookStatus
+        });
         await newMarkedBook.save();
-        res.status(200).send({ message: "MarkedBook added to DB", markedBook:newMarkedBook });
+        res.status(200).send({ message: "MarkedBook added to DB", markedBook: newMarkedBook });
     } catch (err) {
-        res.status(500).send(err);
+        res.status(500).send({ message: err?.message || "Internal server error" });
     }
-}
+};
+
 const updateMarkedBook = async (req, res) => {
     try {
         const markedBook = await MarkedBook.findById(req.params.id);
-        if (!markedBook)
+        if (!markedBook) {
             return res.status(404).send({ message: "markedBook not found" });
-
-        markedBook.set({ ...req.body });
+        }
+        if (!isOwnerOrManager(req, markedBook.userCode)) {
+            return res.status(403).send({ message: "אין הרשאה לבצע פעולה זו" });
+        }
+        const { name, date, bookStatus, bookCode } = req.body || {};
+        markedBook.set({
+            ...(name !== undefined ? { name } : {}),
+            ...(date !== undefined ? { date } : {}),
+            ...(bookStatus !== undefined ? { bookStatus } : {}),
+            ...(bookCode !== undefined ? { bookCode } : {})
+        });
         await markedBook.save();
         res.status(200).send({ message: "markedBook updated", updatedmarkedBook: markedBook });
     } catch (err) {
-        res.status(500).send(err);
+        res.status(500).send({ message: err?.message || "Internal server error" });
     }
-}
+};
 
 module.exports = {
     getAllMarkedBook,
@@ -70,4 +94,4 @@ module.exports = {
     deleteMarkedBook,
     addNewMarkedBook,
     updateMarkedBook
-}
+};

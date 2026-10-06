@@ -1,11 +1,8 @@
-import axios from "axios";
-import { API_BASE_URL } from "./apiBase";
+import { api } from "./apiBase";
 
-export const getBookLikeState = async (bookCode, userCode = "") => {
+export const getBookLikeState = async (bookCode) => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/bookLike/book/${encodeURIComponent(bookCode)}`, {
-      params: userCode ? { userCode } : {}
-    });
+    const response = await api.get(`/bookLike/book/${encodeURIComponent(bookCode)}`);
     return response.data;
   } catch (error) {
     return error.response?.data || error.message;
@@ -14,18 +11,25 @@ export const getBookLikeState = async (bookCode, userCode = "") => {
 
 export const getLikedBooksForUser = async (userCode) => {
   try {
-    const response = await axios.get(
-      `${API_BASE_URL}/bookLike/user/${encodeURIComponent(userCode)}`
-    );
+    const response = await api.get(`/bookLike/user/${encodeURIComponent(userCode)}`);
     return response.data;
   } catch (error) {
     return error.response?.data || error.message;
   }
 };
 
-export const toggleBookLike = async (bookCode, userCode) => {
+export const getMyLikedBooks = async () => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/bookLike/toggle`, { bookCode, userCode });
+    const response = await api.get("/bookLike/me");
+    return response.data;
+  } catch (error) {
+    return error.response?.data || error.message;
+  }
+};
+
+export const toggleBookLike = async (bookCode) => {
+  try {
+    const response = await api.post("/bookLike/toggle", { bookCode });
     return response.data;
   } catch (error) {
     return error.response?.data || error.message;

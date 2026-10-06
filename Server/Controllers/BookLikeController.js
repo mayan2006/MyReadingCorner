@@ -5,17 +5,42 @@ const User = require("../Models/UserModel");
 
 const USER_BOOK_CARD_IMG = "https://placehold.co/600x800?text=User+Book";
 
+const mapLikeToBookCard = async (like) => {
+    const normal = await Book.findOne({ bookCode: like.bookCode }).lean();
+    if (normal) {
+        return { ...normal, authorUserCode: null };
+    }
+    const fw = await FreeWriting.findOne({ writingCode: like.bookCode }).lean();
+    if (!fw) return null;
+    const fwAuthor = await User.findOne({ userCode: fw.userCode })
+        .select("firstName lastName")
+        .lean();
+    const authorName =
+        fw.author ||
+        (fwAuthor ? `${fwAuthor.firstName || ""} ${fwAuthor.lastName || ""}`.trim() : "") ||
+        fw.userCode;
+    return {
+        bookCode: fw.writingCode,
+        categoryCode: "ספרי משתמשים",
+        title: fw.name || `כתיבה ${fw.writingCode}`,
+        author: authorName,
+        authorUserCode: fw.userCode,
+        summary: fw.summary || "",
+        img: USER_BOOK_CARD_IMG,
+        content: fw.content || ""
+    };
+};
+
 const getBookLikeState = async (req, res) => {
     try {
         const { bookCode } = req.params;
-        const { userCode } = req.query;
         if (!bookCode) {
             return res.status(400).send({ message: "bookCode is required" });
         }
         const count = await BookLike.countDocuments({ bookCode });
         let likedByUser = false;
-        if (userCode) {
-            likedByUser = !!(await BookLike.findOne({ bookCode, userCode }));
+        if (req.user?.userCode) {
+            likedByUser = !!(await BookLike.findOne({ bookCode, userCode: req.user.userCode }));
         }
         res.status(200).send({ bookCode, count, likedByUser });
     } catch (err) {
@@ -25,9 +50,10 @@ const getBookLikeState = async (req, res) => {
 
 const toggleBookLike = async (req, res) => {
     try {
-        const { bookCode, userCode } = req.body;
-        if (!bookCode || !userCode) {
-            return res.status(400).send({ message: "bookCode and userCode are required" });
+        const { bookCode } = req.body;
+        const userCode = req.user.userCode;
+        if (!bookCode) {
+            return res.status(400).send({ message: "bookCode is required" });
         }
         const existing = await BookLike.findOne({ bookCode, userCode });
         if (existing) {
@@ -43,7 +69,6 @@ const toggleBookLike = async (req, res) => {
     }
 };
 
-/** כל הספרים שהמשתמש סימן בלייק — לעמוד "ספרים אהובים" */
 const getLikedBooksForUser = async (req, res) => {
     try {
         const { userCode } = req.params;
@@ -53,30 +78,8 @@ const getLikedBooksForUser = async (req, res) => {
         const likes = await BookLike.find({ userCode }).sort({ createdAt: -1 }).lean();
         const books = [];
         for (const like of likes) {
-            const normal = await Book.findOne({ bookCode: like.bookCode }).lean();
-            if (normal) {
-                books.push({ ...normal, authorUserCode: null });
-                continue;
-            }
-            const fw = await FreeWriting.findOne({ writingCode: like.bookCode }).lean();
-            if (!fw) continue;
-            const fwAuthor = await User.findOne({ userCode: fw.userCode })
-                .select("firstName lastName")
-                .lean();
-            const authorName =
-                fw.author ||
-                (fwAuthor ? `${fwAuthor.firstName || ""} ${fwAuthor.lastName || ""}`.trim() : "") ||
-                fw.userCode;
-            books.push({
-                bookCode: fw.writingCode,
-                categoryCode: "ספרי משתמשים",
-                title: fw.name || `כתיבה ${fw.writingCode}`,
-                author: authorName,
-                authorUserCode: fw.userCode,
-                summary: fw.summary || "",
-                img: USER_BOOK_CARD_IMG,
-                content: fw.content || ""
-            });
+            const card = await mapLikeToBookCard(like);
+            if (card) books.push(card);
         }
         res.status(200).send(books);
     } catch (err) {
@@ -84,8 +87,14 @@ const getLikedBooksForUser = async (req, res) => {
     }
 };
 
+const getMyLikedBooks = async (req, res) => {
+    req.params.userCode = req.user.userCode;
+    return getLikedBooksForUser(req, res);
+};
+
 module.exports = {
     getBookLikeState,
     toggleBookLike,
-    getLikedBooksForUser
+    getLikedBooksForUser,
+    getMyLikedBooks
 };

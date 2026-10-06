@@ -1,26 +1,15 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Box, Typography, Alert, Container } from "@mui/material";
 import BookCard from "./BookCard";
-import { getLikedBooksForUser } from "../services/bookLikeApi";
-
-const getLoggedInUserCode = () => {
-  const rawCurrentUser = localStorage.getItem("currentUser");
-  if (rawCurrentUser) {
-    try {
-      const parsed = JSON.parse(rawCurrentUser);
-      if (parsed?.userCode) return parsed.userCode;
-    } catch {
-      return localStorage.getItem("userCode") || "";
-    }
-  }
-  return localStorage.getItem("userCode") || "";
-};
+import { getMyLikedBooks } from "../services/bookLikeApi";
+import { useAuth } from "../context/AuthContext.jsx";
 
 export default function FavoriteBooks() {
+  const { currentUser } = useAuth();
+  const currentUserCode = currentUser?.userCode || "";
   const [books, setBooks] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
-  const currentUserCode = useMemo(() => getLoggedInUserCode(), []);
 
   const loadBooks = useCallback(async () => {
     if (!currentUserCode) {
@@ -31,7 +20,7 @@ export default function FavoriteBooks() {
     }
     setError("");
     try {
-      const data = await getLikedBooksForUser(currentUserCode);
+      const data = await getMyLikedBooks();
       if (Array.isArray(data)) {
         setBooks(data);
       } else if (data?.message) {

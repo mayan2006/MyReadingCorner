@@ -1,22 +1,18 @@
-import axios from "axios";
-import { API_BASE_URL } from "./apiBase";
+import { api } from "./apiBase";
 
 export const getBookResponses = async (bookCode) => {
   try {
-    const response = await axios.get(
-      `${API_BASE_URL}/bookResponse/book/${encodeURIComponent(bookCode)}`
-    );
+    const response = await api.get(`/bookResponse/book/${encodeURIComponent(bookCode)}`);
     return response.data;
   } catch (error) {
     return error.response?.data || error.message;
   }
 };
 
-export const addBookResponse = async ({ bookCode, userCode, content }) => {
+export const addBookResponse = async ({ bookCode, content }) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/bookResponse`, {
+    const response = await api.post("/bookResponse", {
       bookCode,
-      userCode,
       content
     });
     return response.data;
@@ -25,12 +21,9 @@ export const addBookResponse = async ({ bookCode, userCode, content }) => {
   }
 };
 
-export const deleteBookResponse = async (responseId, userCode) => {
+export const deleteBookResponse = async (responseId) => {
   try {
-    const response = await axios.delete(
-      `${API_BASE_URL}/bookResponse/${encodeURIComponent(responseId)}`,
-      { params: { userCode } }
-    );
+    const response = await api.delete(`/bookResponse/${encodeURIComponent(responseId)}`);
     return response.data;
   } catch (error) {
     return error.response?.data || error.message;

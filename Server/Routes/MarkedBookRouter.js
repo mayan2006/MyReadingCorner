@@ -1,14 +1,14 @@
-const express =require('express')
+const express = require("express");
 
-const markedBookController = require('../Controllers/MarkedBookController')
+const markedBookController = require("../Controllers/MarkedBookController");
+const { authenticate } = require("../middleware/authenticate");
 
-const markedBookRouter=express.Router()
+const markedBookRouter = express.Router();
 
-markedBookRouter.get('/',markedBookController.getAllMarkedBook)
-markedBookRouter.get('/:id',markedBookController.getMarkedBookById)
-markedBookRouter.delete('/:bookCode',markedBookController.deleteMarkedBook)
-markedBookRouter.post('/',markedBookController.addNewMarkedBook)
-markedBookRouter.put('/:id',markedBookController.updateMarkedBook)
+markedBookRouter.get("/", authenticate, markedBookController.getAllMarkedBook);
+markedBookRouter.get("/:id", authenticate, markedBookController.getMarkedBookById);
+markedBookRouter.delete("/:bookCode", authenticate, markedBookController.deleteMarkedBook);
+markedBookRouter.post("/", authenticate, markedBookController.addNewMarkedBook);
+markedBookRouter.put("/:id", authenticate, markedBookController.updateMarkedBook);
 
-module.exports=markedBookRouter
-
+module.exports = markedBookRouter;

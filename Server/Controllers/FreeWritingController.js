@@ -1,4 +1,5 @@
-const FreeWriting=require('../Models/FreeWritingModel')
+const FreeWriting = require("../Models/FreeWritingModel");
+const { isOwnerOrManager } = require("../middleware/authorize");
 
 const getAllFreeWriting = async (req, res) => {
     try {
@@ -54,8 +55,7 @@ const updateFreeWritingByWritingCode = async (req, res) => {
         if (!doc) {
             return res.status(404).send({ message: "freeWriting not found" });
         }
-        const { userCode } = req.body || {};
-        if (!userCode || userCode !== doc.userCode) {
+        if (!isOwnerOrManager(req, doc.userCode)) {
             return res.status(403).send({ message: "Forbidden" });
         }
         const {
@@ -87,9 +87,8 @@ const updateFreeWritingByWritingCode = async (req, res) => {
 const uploadCoverImage = async (req, res) => {
     try {
         const writingCode = (req.body.writingCode || "").trim();
-        const userCode = (req.body.userCode || "").trim();
-        if (!writingCode || !userCode) {
-            return res.status(400).send({ message: "writingCode and userCode are required" });
+        if (!writingCode) {
+            return res.status(400).send({ message: "writingCode is required" });
         }
         if (!req.file) {
             return res.status(400).send({ message: "Image file is required" });
@@ -99,7 +98,7 @@ const uploadCoverImage = async (req, res) => {
         if (!doc) {
             return res.status(404).send({ message: "freeWriting not found" });
         }
-        if (doc.userCode !== userCode) {
+        if (!isOwnerOrManager(req, doc.userCode)) {
             return res.status(403).send({ message: "Forbidden" });
         }
 
@@ -114,23 +113,30 @@ const uploadCoverImage = async (req, res) => {
 
 const deleteFreeWriting = async (req, res) => {
     try {
-        const freeWriting = await FreeWriting.deleteOne({ writingCode: req.params.writingCode })
-        res.status(200).send("freeWriting deleted " + freeWriting)
+        const doc = await FreeWriting.findOne({ writingCode: req.params.writingCode });
+        if (!doc) {
+            return res.status(404).send({ message: "freeWriting not found" });
+        }
+        if (!isOwnerOrManager(req, doc.userCode)) {
+            return res.status(403).send({ message: "Forbidden" });
+        }
+        const freeWriting = await FreeWriting.deleteOne({ writingCode: req.params.writingCode });
+        res.status(200).send("freeWriting deleted " + freeWriting);
+    } catch (err) {
+        res.status(500).send({ message: err?.message || "Internal server error" });
     }
-    catch (err) {
-        res.status(500).send("some error " + err)
-    }
-}
+};
+
 const addNewFreeWriting = async (req, res) => {
     try {
         const body = { ...req.body };
+        body.userCode = req.user.userCode;
         const incomingSeries = body.seriesCode;
         const writingCode = body.writingCode;
 
         if (!incomingSeries || incomingSeries === writingCode) {
             body.seriesCode = writingCode;
         } else {
-            // Match legacy rows that only had writingCode (no seriesCode on first chapter)
             const inSeries = {
                 $or: [{ seriesCode: incomingSeries }, { writingCode: incomingSeries }]
             };
@@ -157,19 +163,33 @@ const addNewFreeWriting = async (req, res) => {
         res.status(500).send({ message: err?.message || String(err) });
     }
 };
+
 const updateFreeWriting = async (req, res) => {
     try {
         const freeWriting = await FreeWriting.findById(req.params.id);
-        if (!freeWriting)
+        if (!freeWriting) {
             return res.status(404).send({ message: "freeWriting not found" });
+        }
+        if (!isOwnerOrManager(req, freeWriting.userCode)) {
+            return res.status(403).send({ message: "Forbidden" });
+        }
 
-        freeWriting.set({ ...req.body });
+        const { subjectCode, chapter, name, summary, content, author, isApproved } = req.body || {};
+        freeWriting.set({
+            ...(subjectCode !== undefined ? { subjectCode } : {}),
+            ...(chapter !== undefined ? { chapter } : {}),
+            ...(name !== undefined ? { name } : {}),
+            ...(summary !== undefined ? { summary } : {}),
+            ...(content !== undefined ? { content } : {}),
+            ...(author !== undefined ? { author } : {}),
+            ...(typeof isApproved === "boolean" ? { isApproved } : {})
+        });
         await freeWriting.save();
         res.status(200).send({ message: "freeWriting updated", updatedFreeWriting: freeWriting });
     } catch (err) {
-        res.status(500).send(err);
+        res.status(500).send({ message: err?.message || "Internal server error" });
     }
-}
+};
 
 module.exports = {
     getAllFreeWriting,

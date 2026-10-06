@@ -1,42 +1,20 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Box, Typography, Alert, Container, Stack } from "@mui/material";
 import BookCard from "./BookCard";
 import { deleteFreeWriting, getAllFreeWriting } from "../services/freeWritingApi";
 import { groupFreeWritingsBySeries, mapSeriesGroupToCatalogBook } from "../utils/freeWritingSeries";
+import { useAuth } from "../context/AuthContext.jsx";
 
 const USER_BOOKS_FALLBACK_IMAGE = "https://placehold.co/600x800?text=User+Book";
 
-const getLoggedInUserCode = () => {
-  const rawCurrentUser = localStorage.getItem("currentUser");
-  if (rawCurrentUser) {
-    try {
-      const parsed = JSON.parse(rawCurrentUser);
-      if (parsed?.userCode) return parsed.userCode;
-    } catch {
-      // Keep checking other localStorage keys.
-    }
-  }
-
-  const rawUser = localStorage.getItem("user");
-  if (rawUser) {
-    try {
-      const parsed = JSON.parse(rawUser);
-      if (parsed?.userCode) return parsed.userCode;
-    } catch {
-      // Keep checking fallback key.
-    }
-  }
-
-  return localStorage.getItem("userCode") || "";
-};
-
 export default function MyBooks() {
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
+  const currentUserCode = currentUser?.userCode || "";
   const [myBooks, setMyBooks] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
-  const currentUserCode = useMemo(() => getLoggedInUserCode(), []);
 
   useEffect(() => {
     const loadMyBooks = async () => {

@@ -3,6 +3,13 @@ const User = require("../Models/UserModel");
 const FreeWriting = require("../Models/FreeWritingModel");
 const Book = require("../Models/BookModel");
 const BookLike = require("../Models/BookLikeModel");
+const {
+    REFRESH_COOKIE,
+    setAuthCookies,
+    clearAuthCookies,
+    verifyRefreshToken
+} = require("../utils/tokens");
+const { isOwnerOrManager } = require("../middleware/authorize");
 
 const USER_BOOK_CARD_IMG = "https://placehold.co/600x800?text=User+Book";
 
@@ -64,32 +71,40 @@ const stripUserForClient = (userDoc) => {
 
 const getAllUsers = async (req, res) => {
     try {
-        const allUsers = await User.find()
-        res.status(200).send(allUsers)
+        const allUsers = await User.find().select("-password");
+        res.status(200).send(allUsers);
+    } catch (err) {
+        res.status(500).send({ message: err?.message || "Internal server error" });
     }
-    catch (err) {
-        res.status(500).send("some error " + err)
-    }
-}
+};
+
 const getUserById = async (req, res) => {
     try {
-        const user = await User.findById(req.params.id)
-        res.status(200).send(user)
+        const user = await User.findById(req.params.id).select("-password");
+        if (!user) {
+            return res.status(404).send({ message: "user not found" });
+        }
+        if (!isOwnerOrManager(req, user.userCode)) {
+            return res.status(403).send({ message: "אין הרשאה לבצע פעולה זו" });
+        }
+        res.status(200).send(user);
+    } catch (err) {
+        res.status(500).send({ message: err?.message || "Internal server error" });
     }
-    catch (err) {
-        res.status(500).send("some error " + err)
-    }
-}
+};
 
-const deleteUser= async (req, res) => {
+const deleteUser = async (req, res) => {
     try {
-        const user = await User.deleteOne({ userCode: req.params.userCode })
-        res.status(200).send("store deleted " + user)
+        if (!isOwnerOrManager(req, req.params.userCode)) {
+            return res.status(403).send({ message: "אין הרשאה לבצע פעולה זו" });
+        }
+        const user = await User.deleteOne({ userCode: req.params.userCode });
+        res.status(200).send({ message: "user deleted", result: user });
+    } catch (err) {
+        res.status(500).send({ message: err?.message || "Internal server error" });
     }
-    catch (err) {
-        res.status(500).send("some error " + err)
-    }
-}
+};
+
 const loginUser = async (req, res) => {
     try {
         const email = (req.body.email || "").trim().toLowerCase();
@@ -105,7 +120,52 @@ const loginUser = async (req, res) => {
         if (!match) {
             return res.status(401).send({ message: "אימייל או סיסמה שגויים" });
         }
+        setAuthCookies(res, user);
         res.status(200).send({ message: "התחברות הצליחה", user: stripUserForClient(user) });
+    } catch (err) {
+        res.status(500).send({ message: err?.message || "Internal server error" });
+    }
+};
+
+const logoutUser = async (req, res) => {
+    clearAuthCookies(res);
+    res.status(200).send({ message: "התנתקת בהצלחה" });
+};
+
+const refreshSession = async (req, res) => {
+    try {
+        const token = req.cookies?.[REFRESH_COOKIE];
+        if (!token) {
+            return res.status(401).send({ message: "נדרשת התחברות" });
+        }
+        const decoded = verifyRefreshToken(token);
+        if (!decoded || decoded.typ !== "refresh" || !decoded.id) {
+            clearAuthCookies(res);
+            return res.status(401).send({ message: "נדרשת התחברות" });
+        }
+        const user = await User.findById(decoded.id);
+        if (!user) {
+            clearAuthCookies(res);
+            return res.status(401).send({ message: "נדרשת התחברות" });
+        }
+        setAuthCookies(res, user);
+        res.status(200).send({ message: "session refreshed", user: stripUserForClient(user) });
+    } catch (err) {
+        clearAuthCookies(res);
+        if (err?.name === "TokenExpiredError" || err?.name === "JsonWebTokenError") {
+            return res.status(401).send({ message: "נדרשת התחברות" });
+        }
+        res.status(500).send({ message: err?.message || "Internal server error" });
+    }
+};
+
+const getMe = async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id).select("-password");
+        if (!user) {
+            return res.status(401).send({ message: "נדרשת התחברות" });
+        }
+        res.status(200).send({ user: stripUserForClient(user) });
     } catch (err) {
         res.status(500).send({ message: err?.message || "Internal server error" });
     }
@@ -117,6 +177,7 @@ const addNewUser = async (req, res) => {
         body.role = "user";
         const newUser = new User(body);
         await newUser.save();
+        setAuthCookies(res, newUser);
         res.status(200).send({ message: "Store added to DB", user: stripUserForClient(newUser) });
     } catch (err) {
         if (err?.name === "ValidationError") {
@@ -125,20 +186,42 @@ const addNewUser = async (req, res) => {
         }
         res.status(500).send({ message: err?.message || "Internal server error" });
     }
-}
+};
+
 const updateUser = async (req, res) => {
     try {
         const user = await User.findById(req.params.id);
-        if (!user)
+        if (!user) {
             return res.status(404).send({ message: "user not found" });
+        }
+        if (!isOwnerOrManager(req, user.userCode)) {
+            return res.status(403).send({ message: "אין הרשאה לבצע פעולה זו" });
+        }
 
-        user.set({ ...req.body });
+        const allowed = {
+            firstName: req.body.firstName,
+            lastName: req.body.lastName,
+            email: req.body.email,
+            img: req.body.img,
+            userStatus: req.body.userStatus
+        };
+        if (req.body.password) {
+            allowed.password = req.body.password;
+        }
+        if (req.user.role === "manager" && req.body.role) {
+            allowed.role = req.body.role;
+        }
+
+        Object.keys(allowed).forEach((key) => {
+            if (allowed[key] === undefined) delete allowed[key];
+        });
+        user.set(allowed);
         await user.save();
-        res.status(200).send({ message: "user updated", updatedUser: user });
+        res.status(200).send({ message: "user updated", updatedUser: stripUserForClient(user) });
     } catch (err) {
-        res.status(500).send(err);
+        res.status(500).send({ message: err?.message || "Internal server error" });
     }
-}
+};
 
 /** פרופיל ציבורי: כתיבות של המשתמש + ספרים שסימן/ה בלייק (בלי רשימת "לקריאה בהמשך") */
 const getPublicAuthorProfile = async (req, res) => {
@@ -200,16 +283,11 @@ const getPublicAuthorProfile = async (req, res) => {
 
 const updateUserImage = async (req, res) => {
     try {
-        const { userCode } = req.body;
-        if (!userCode) {
-            return res.status(400).send({ message: "userCode is required" });
-        }
-
         if (!req.file) {
             return res.status(400).send({ message: "Image file is required" });
         }
 
-        const user = await User.findOne({ userCode });
+        const user = await User.findById(req.user.id);
         if (!user) {
             return res.status(404).send({ message: "user not found" });
         }
@@ -224,7 +302,7 @@ const updateUserImage = async (req, res) => {
     } catch (err) {
         return res.status(500).send({ message: err?.message || "Internal server error" });
     }
-}
+};
 
 module.exports = {
     getAllUsers,
@@ -232,6 +310,9 @@ module.exports = {
     deleteUser,
     addNewUser,
     loginUser,
+    logoutUser,
+    refreshSession,
+    getMe,
     getPublicAuthorProfile,
     updateUser,
     updateUserImage

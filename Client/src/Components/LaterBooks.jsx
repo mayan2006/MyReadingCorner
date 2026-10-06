@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Box, Typography, Alert, Container } from "@mui/material";
 import axios from "axios";
 import BookCard from "./BookCard";
@@ -10,28 +10,16 @@ import {
   seriesKeyForWriting,
   sortChaptersAsc
 } from "../utils/freeWritingSeries";
+import { useAuth } from "../context/AuthContext.jsx";
 
 const USER_BOOKS_FALLBACK_IMAGE = "https://placehold.co/600x800?text=User+Book";
 
-const getLoggedInUserCode = () => {
-  const rawCurrentUser = localStorage.getItem("currentUser");
-  if (rawCurrentUser) {
-    try {
-      const parsed = JSON.parse(rawCurrentUser);
-      if (parsed?.userCode) return parsed.userCode;
-    } catch {
-      // Ignore malformed local data and continue fallback flow.
-    }
-  }
-
-  return localStorage.getItem("userCode") || "";
-};
-
 export default function LaterBooks() {
+  const { currentUser } = useAuth();
+  const currentUserCode = currentUser?.userCode || "";
   const [books, setBooks] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
-  const currentUserCode = useMemo(() => getLoggedInUserCode(), []);
 
   useEffect(() => {
     const loadLaterBooks = async () => {

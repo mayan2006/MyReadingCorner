@@ -4,6 +4,7 @@ const path = require("path");
 const fs = require("fs");
 
 const freeWritingController = require("../Controllers/FreeWritingController");
+const { authenticate } = require("../middleware/authenticate");
 
 const freeWritingRouter = express.Router();
 
@@ -25,12 +26,21 @@ const upload = multer({ storage });
 
 freeWritingRouter.get("/", freeWritingController.getAllFreeWriting);
 freeWritingRouter.get("/by-code/:writingCode", freeWritingController.getFreeWritingByWritingCode);
-freeWritingRouter.put("/by-code/:writingCode", freeWritingController.updateFreeWritingByWritingCode);
-freeWritingRouter.post("/upload-cover", upload.single("image"), freeWritingController.uploadCoverImage);
+freeWritingRouter.put(
+  "/by-code/:writingCode",
+  authenticate,
+  freeWritingController.updateFreeWritingByWritingCode
+);
+freeWritingRouter.post(
+  "/upload-cover",
+  authenticate,
+  upload.single("image"),
+  freeWritingController.uploadCoverImage
+);
 freeWritingRouter.get("/series/:seriesCode", freeWritingController.getChaptersBySeriesCode);
-freeWritingRouter.delete("/:writingCode", freeWritingController.deleteFreeWriting);
+freeWritingRouter.delete("/:writingCode", authenticate, freeWritingController.deleteFreeWriting);
 freeWritingRouter.get("/:id", freeWritingController.getFreeWritingById);
-freeWritingRouter.post("/", freeWritingController.addNewFreeWriting);
-freeWritingRouter.put("/:id", freeWritingController.updateFreeWriting);
+freeWritingRouter.post("/", authenticate, freeWritingController.addNewFreeWriting);
+freeWritingRouter.put("/:id", authenticate, freeWritingController.updateFreeWriting);
 
 module.exports = freeWritingRouter;

@@ -20,20 +20,11 @@ import {
 import { useNavigate } from "react-router-dom";
 import { getPendingSubjects, approveSubjectByCode } from "../services/subjectApi";
 import { BOOK_CATEGORIES } from "../constants/bookCategories";
-
-const getStoredUser = () => {
-  const raw = localStorage.getItem("currentUser");
-  if (!raw) return null;
-  try {
-    return JSON.parse(raw);
-  } catch {
-    return null;
-  }
-};
+import { useAuth } from "../context/AuthContext.jsx";
 
 export default function ManagerSubjectApprovals() {
   const navigate = useNavigate();
-  const [user] = useState(() => getStoredUser());
+  const { currentUser: user } = useAuth();
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -48,7 +39,7 @@ export default function ManagerSubjectApprovals() {
       return;
     }
     setError(null);
-    const data = await getPendingSubjects(user.userCode);
+    const data = await getPendingSubjects();
     if (Array.isArray(data)) {
       setRows(data);
     } else if (data?.message) {
@@ -87,7 +78,7 @@ export default function ManagerSubjectApprovals() {
     setActionError(null);
     setBusyCode(subjectCode);
     try {
-      const res = await approveSubjectByCode(subjectCode, user.userCode, categoryCode);
+      const res = await approveSubjectByCode(subjectCode, categoryCode);
       if (!res || res.message !== "הנושא אושר") {
         const msg =
           typeof res === "string"

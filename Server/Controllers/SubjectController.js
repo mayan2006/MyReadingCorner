@@ -1,5 +1,4 @@
 const Subject = require("../Models/SubjectModel");
-const User = require("../Models/UserModel");
 
 /** תואם לטאבי הקטגוריות בלקוח — לשיוך נושא לתצוגה ב-Navbar */
 const SUBJECT_NAV_CATEGORIES = [
@@ -20,15 +19,6 @@ const normalizeCategoryInput = (value) => {
     }
 };
 
-const assertManager = async (managerUserCode) => {
-    if (!managerUserCode) return { ok: false, status: 400, message: "חסר מזהה מנהל" };
-    const user = await User.findOne({ userCode: managerUserCode });
-    if (!user || user.role !== "manager") {
-        return { ok: false, status: 403, message: "אין הרשאת מנהל" };
-    }
-    return { ok: true, user };
-};
-
 const getAllSubjects = async (req, res) => {
     try {
         const allSubjects = await Subject.find({
@@ -43,21 +33,16 @@ const getAllSubjects = async (req, res) => {
         }).sort({ name: 1 });
         res.status(200).send(allSubjects);
     } catch (err) {
-        res.status(500).send("some error " + err);
+        res.status(500).send({ message: err?.message || "Internal server error" });
     }
 };
 
 const getPendingSubjects = async (req, res) => {
     try {
-        const { managerUserCode } = req.query;
-        const auth = await assertManager(managerUserCode);
-        if (!auth.ok) {
-            return res.status(auth.status).send({ message: auth.message });
-        }
         const pending = await Subject.find({ managerApproved: false }).sort({ subjectCode: -1 });
         res.status(200).send(pending);
     } catch (err) {
-        res.status(500).send("some error " + err);
+        res.status(500).send({ message: err?.message || "Internal server error" });
     }
 };
 
@@ -69,7 +54,7 @@ const getSubjectBySubjectCode = async (req, res) => {
         }
         res.status(200).send(subject);
     } catch (err) {
-        res.status(500).send("some error " + err);
+        res.status(500).send({ message: err?.message || "Internal server error" });
     }
 };
 
@@ -78,7 +63,7 @@ const getSubjectById = async (req, res) => {
         const subject = await Subject.findById(req.params.id);
         res.status(200).send(subject);
     } catch (err) {
-        res.status(500).send("some error " + err);
+        res.status(500).send({ message: err?.message || "Internal server error" });
     }
 };
 
@@ -87,7 +72,7 @@ const deleteSubject = async (req, res) => {
         const subject = await Subject.deleteOne({ subjectCode: req.params.subjectCode });
         res.status(200).send("Book deleted " + subject);
     } catch (err) {
-        res.status(500).send("some error " + err);
+        res.status(500).send({ message: err?.message || "Internal server error" });
     }
 };
 
@@ -101,7 +86,7 @@ const addNewSubject = async (req, res) => {
         await newSubject.save();
         res.status(200).send({ message: "Subject added to DB", Subject: newSubject });
     } catch (err) {
-        res.status(500).send(err);
+        res.status(500).send({ message: err?.message || "Internal server error" });
     }
 };
 
@@ -109,9 +94,8 @@ const addNewSubject = async (req, res) => {
 const createUserSubjectRequest = async (req, res) => {
     try {
         const name = (req.body.name || "").trim();
-        const { userCode } = req.body;
-        if (!name || !userCode) {
-            return res.status(400).send({ message: "שם נושא וקוד משתמש נדרשים" });
+        if (!name) {
+            return res.status(400).send({ message: "שם נושא נדרש" });
         }
         let categoryCode = normalizeCategoryInput(req.body.categoryCode);
         if (!SUBJECT_NAV_CATEGORIES.includes(categoryCode)) {
@@ -124,7 +108,7 @@ const createUserSubjectRequest = async (req, res) => {
             img: req.body.img || "/vite.svg",
             isApproved: false,
             managerApproved: false,
-            requestedByUserCode: userCode,
+            requestedByUserCode: req.user.userCode,
             categoryCode
         });
         await newSubject.save();
@@ -133,18 +117,14 @@ const createUserSubjectRequest = async (req, res) => {
             Subject: newSubject
         });
     } catch (err) {
-        res.status(500).send(err);
+        res.status(500).send({ message: err?.message || "Internal server error" });
     }
 };
 
 const approveSubjectByCode = async (req, res) => {
     try {
         const { subjectCode } = req.params;
-        const { managerUserCode, categoryCode } = req.body || {};
-        const auth = await assertManager(managerUserCode);
-        if (!auth.ok) {
-            return res.status(auth.status).send({ message: auth.message });
-        }
+        const { categoryCode } = req.body || {};
         let categoryTrimmed = normalizeCategoryInput(categoryCode);
         if (!categoryTrimmed) {
             return res.status(400).send({ message: "חובה לבחור קטגוריה לפני אישור הנושא" });
@@ -162,7 +142,7 @@ const approveSubjectByCode = async (req, res) => {
         await subject.save();
         res.status(200).send({ message: "הנושא אושר", Subject: subject });
     } catch (err) {
-        res.status(500).send(err);
+        res.status(500).send({ message: err?.message || "Internal server error" });
     }
 };
 
@@ -175,7 +155,7 @@ const updateSubject = async (req, res) => {
         await subject.save();
         res.status(200).send({ message: "Subject updated", updatedSubject: subject });
     } catch (err) {
-        res.status(500).send(err);
+        res.status(500).send({ message: err?.message || "Internal server error" });
     }
 };
 

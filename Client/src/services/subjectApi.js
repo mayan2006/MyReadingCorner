@@ -1,5 +1,4 @@
-import axios from "axios";
-import { API_BASE_URL } from "./apiBase";
+import { api } from "./apiBase";
 
 const buildSubjectPayload = (body = {}) => ({
   subjectCode: body.subjectCode,
@@ -11,22 +10,19 @@ const buildSubjectPayload = (body = {}) => ({
   categoryCode: body.categoryCode
 });
 
-// CREATE
 export const addSubject = async (body) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/subject`, buildSubjectPayload(body));
+    const response = await api.post("/subject", buildSubjectPayload(body));
     return response.data;
   } catch (error) {
     return error.response?.data || error.message;
   }
 };
 
-/** נושא חדש ממשתמש — נשמר כממתין לאישור מנהל */
-export const createUserSubjectRequest = async ({ name, userCode, img, categoryCode }) => {
+export const createUserSubjectRequest = async ({ name, img, categoryCode }) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/subject/user-request`, {
+    const response = await api.post("/subject/user-request", {
       name,
-      userCode,
       ...(img ? { img } : {}),
       ...(categoryCode ? { categoryCode } : {})
     });
@@ -36,23 +32,20 @@ export const createUserSubjectRequest = async ({ name, userCode, img, categoryCo
   }
 };
 
-export const getPendingSubjects = async (managerUserCode) => {
+export const getPendingSubjects = async () => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/subject/pending-approval`, {
-      params: { managerUserCode }
-    });
+    const response = await api.get("/subject/pending-approval");
     return response.data;
   } catch (error) {
     return error.response?.data || error.message;
   }
 };
 
-export const approveSubjectByCode = async (subjectCode, managerUserCode, categoryCode = "") => {
+export const approveSubjectByCode = async (subjectCode, categoryCode = "") => {
   try {
-    const response = await axios.patch(
-      `${API_BASE_URL}/subject/${encodeURIComponent(subjectCode)}/approve`,
-      { managerUserCode, categoryCode }
-    );
+    const response = await api.patch(`/subject/${encodeURIComponent(subjectCode)}/approve`, {
+      categoryCode
+    });
     return response.data;
   } catch (error) {
     return error.response?.data || error.message;
@@ -61,20 +54,16 @@ export const approveSubjectByCode = async (subjectCode, managerUserCode, categor
 
 export const getSubjectBySubjectCode = async (subjectCode) => {
   try {
-    const response = await axios.get(
-      `${API_BASE_URL}/subject/by-code/${encodeURIComponent(subjectCode)}`
-    );
+    const response = await api.get(`/subject/by-code/${encodeURIComponent(subjectCode)}`);
     return response.data;
   } catch (error) {
     return error.response?.data || error.message;
   }
 };
 
-// GET — רשימת נושאים (הסינון לטופס כתיבה חופשית נעשה בקומפוננטה)
 export const getAllSubjects = async () => {
   try {
-    const base = API_BASE_URL.replace(/\/$/, "");
-    const response = await axios.get(`${base}/subject/catalog`, {
+    const response = await api.get("/subject/catalog", {
       headers: { Accept: "application/json" },
       responseType: "json"
     });
@@ -96,27 +85,25 @@ export const getAllSubjects = async () => {
 
 export const getSubjectById = async (id) => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/subject/${id}`);
+    const response = await api.get(`/subject/${id}`);
     return response.data;
   } catch (error) {
     return error.response?.data || error.message;
   }
 };
 
-// UPDATE
 export const updateSubject = async (id, body) => {
   try {
-    const response = await axios.put(`${API_BASE_URL}/subject/${id}`, buildSubjectPayload(body));
+    const response = await api.put(`/subject/${id}`, buildSubjectPayload(body));
     return response.data;
   } catch (error) {
     return error.response?.data || error.message;
   }
 };
 
-// DELETE (server expects subjectCode)
 export const deleteSubject = async (subjectCode) => {
   try {
-    const response = await axios.delete(`${API_BASE_URL}/subject/${subjectCode}`);
+    const response = await api.delete(`/subject/${subjectCode}`);
     return response.data;
   } catch (error) {
     return error.response?.data || error.message;

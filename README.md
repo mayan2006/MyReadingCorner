@@ -210,11 +210,17 @@ VITE_API_BASE_URL=http://localhost:5000
 
 ```env
 MONGODB_URI=mongodb+srv://USER:PASSWORD@cluster.mongodb.net/mySiteDB?retryWrites=true&w=majority
+JWT_ACCESS_SECRET=replace-with-a-long-random-string
+JWT_REFRESH_SECRET=replace-with-another-long-random-string
+CLIENT_URL=http://localhost:5173
 ```
 
 | משתנה | תיאור |
 |--------|--------|
 | `MONGODB_URI` | קישור MongoDB Atlas או מקומי. שם DB מומלץ: **`mySiteDB`** |
+| `JWT_ACCESS_SECRET` | סוד לחתימת access token (קצר) |
+| `JWT_REFRESH_SECRET` | סוד לחתימת refresh token (ארוך) |
+| `CLIENT_URL` | כתובת הלקוח ל-CORS (אפשר כמה כתובות מופרדות בפסיק) |
 
 > **אל תעלי את `.env` ל-Git.** הקובץ כבר ב-`.gitignore`.
 
@@ -248,7 +254,8 @@ MONGODB_URI=mongodb+srv://USER:PASSWORD@cluster.mongodb.net/mySiteDB?retryWrites
 | **user** | קריאה, לייק, תגובות, כתיבה חופשית, רשימות אישיות |
 | **manager** | + אישור נושאים חדשים ושיוך לקטגוריה |
 
-התחברות נשמרת ב-`localStorage` תחת `currentUser`.  
+התחברות מתבצעת עם **JWT** (access + refresh) שנשמרים ב-**httpOnly cookies**.  
+השרת מזהה את המשתמש מהטוקן (`authenticate` / `authorize`) ולא מ-`userCode` שנשלח מהלקוח.  
 סיסמאות מוצפנות בשרת עם **bcrypt**.
 
 ---
@@ -260,14 +267,14 @@ MONGODB_URI=mongodb+srv://USER:PASSWORD@cluster.mongodb.net/mySiteDB?retryWrites
 | Frontend | React 19, Vite 7, MUI 7, React Router 7, Axios |
 | Backend | Node.js, Express 5, Mongoose 9 |
 | DB | MongoDB / MongoDB Atlas |
-| Auth | bcrypt, localStorage (לקוח) |
+| Auth | bcrypt, JWT (httpOnly cookies), middleware authenticate/authorize |
 | קבצים | Multer (`Server/uploads`) |
 
 ---
 
 ## פיתוח נוסף — רעיונות
 
-- JWT / sessions במקום זיהוי משתמש דרך `userCode` בלבד
+- JWT + הרשאות בשרת — בוצע
 - העברת כל קבועי הקטגוריות ל-DB בלבד
 - בדיקות אוטומטיות (API + רכיבים)
 - פריסה (Render / Railway / Vercel + Atlas)

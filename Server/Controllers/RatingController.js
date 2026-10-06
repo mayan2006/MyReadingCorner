@@ -2,11 +2,12 @@ const Rating = require("../Models/RatingModel");
 
 const upsertRating = async (req, res) => {
   try {
-    const { bookCode, userCode, stars } = req.body;
+    const { bookCode, stars } = req.body;
+    const userCode = req.user.userCode;
     const numericStars = Number(stars);
 
-    if (!bookCode || !userCode || !numericStars || numericStars < 1 || numericStars > 5) {
-      return res.status(400).send({ message: "bookCode, userCode and stars (1-5) are required" });
+    if (!bookCode || !numericStars || numericStars < 1 || numericStars > 5) {
+      return res.status(400).send({ message: "bookCode and stars (1-5) are required" });
     }
 
     const rating = await Rating.findOneAndUpdate(
@@ -49,9 +50,10 @@ const getAverageByBookCode = async (req, res) => {
   }
 };
 
-const getUserRatingByBookCode = async (req, res) => {
+const getMyRatingByBookCode = async (req, res) => {
   try {
-    const { bookCode, userCode } = req.params;
+    const { bookCode } = req.params;
+    const userCode = req.user.userCode;
     const rating = await Rating.findOne({ bookCode, userCode });
     res.status(200).send({ bookCode, userCode, stars: rating?.stars || 0 });
   } catch (err) {
@@ -62,5 +64,5 @@ const getUserRatingByBookCode = async (req, res) => {
 module.exports = {
   upsertRating,
   getAverageByBookCode,
-  getUserRatingByBookCode
+  getMyRatingByBookCode
 };

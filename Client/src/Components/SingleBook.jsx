@@ -34,6 +34,7 @@ import {
 } from "@mui/material";
 import ChatBubbleOutlineRoundedIcon from "@mui/icons-material/ChatBubbleOutlineRounded";
 import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
+import { useAuth } from "../context/AuthContext.jsx";
 
 /** עברית במידה ויש בתוכן תו מאותיות העברית */
 const textContainsHebrew = (value) => typeof value === "string" && /[\u0590-\u05FF]/.test(value);
@@ -41,6 +42,8 @@ const textContainsHebrew = (value) => typeof value === "string" && /[\u0590-\u05
 const SingleBook = () => {
   const { bookCode } = useParams();
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
+  const currentUserCode = currentUser?.userCode || "";
 
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -56,22 +59,9 @@ const SingleBook = () => {
   const [responseSubmitting, setResponseSubmitting] = useState(false);
   const [responseError, setResponseError] = useState("");
 
-  const getCurrentUserCode = () => {
-    const rawCurrentUser = localStorage.getItem("currentUser");
-    if (rawCurrentUser) {
-      try {
-        return JSON.parse(rawCurrentUser)?.userCode || "";
-      } catch {
-        return localStorage.getItem("userCode") || "";
-      }
-    }
-    return localStorage.getItem("userCode") || "";
-  };
-
   const refreshLikes = useCallback(async () => {
     if (!bookCode) return;
-    const userCode = getCurrentUserCode();
-    const res = await getBookLikeState(bookCode, userCode);
+    const res = await getBookLikeState(bookCode);
     if (res && typeof res.count === "number") {
       setLikeCount(res.count);
       setLikedByMe(Boolean(res.likedByUser));
@@ -160,7 +150,7 @@ const SingleBook = () => {
   }, [bookCode, loading, fetchResponses]);
 
   useEffect(() => {
-    const userCode = getCurrentUserCode();
+    const userCode = currentUserCode;
     if (!userCode || !isFreeWritingBook || !seriesChapters.length) {
       setSavedForLater(false);
       return;
@@ -183,15 +173,15 @@ const SingleBook = () => {
     return () => {
       cancelled = true;
     };
-  }, [bookCode, isFreeWritingBook, seriesChapters]);
+  }, [bookCode, isFreeWritingBook, seriesChapters, currentUserCode]);
 
   const handleToggleSaveLater = async () => {
-    const userCode = getCurrentUserCode();
+    const userCode = currentUserCode;
     if (!userCode || !isFreeWritingBook || !seriesChapters.length) return;
     const codes = seriesChapters.map((c) => c.writingCode);
     if (savedForLater) {
       for (const code of codes) {
-        await deleteMarkedBook(code, userCode);
+        await deleteMarkedBook(code);
       }
       setSavedForLater(false);
       return;
@@ -199,7 +189,6 @@ const SingleBook = () => {
     const res = await addMarkedBook({
       bookCode: codes[0],
       name: seriesChapters[0]?.name || book?.title || "ללא שם",
-      userCode,
       date: new Date(),
       bookStatus: "later"
     });
@@ -209,7 +198,7 @@ const SingleBook = () => {
   };
 
   const handleSubmitResponse = async () => {
-    const uid = getCurrentUserCode();
+    const uid = currentUserCode;
     if (!uid) return;
     const trimmed = responseText.trim();
     if (!trimmed) {
@@ -223,7 +212,7 @@ const SingleBook = () => {
     setResponseError("");
     setResponseSubmitting(true);
     try {
-      const res = await addBookResponse({ bookCode, userCode: uid, content: trimmed });
+      const res = await addBookResponse({ bookCode, content: trimmed });
       if (!res || res.message !== "response added") {
         const msg =
           typeof res === "string" ? res : res?.message || "לא ניתן לשלוח את התגובה";
@@ -238,18 +227,18 @@ const SingleBook = () => {
   };
 
   const handleDeleteResponse = async (id) => {
-    const uid = getCurrentUserCode();
+    const uid = currentUserCode;
     if (!id || !uid) return;
-    const del = await deleteBookResponse(id, uid);
+    const del = await deleteBookResponse(id);
     if (del?.message === "response deleted") {
       setResponses((prev) => prev.filter((r) => String(r._id) !== String(id)));
     }
   };
 
   const handleToggleLike = async () => {
-    const userCode = getCurrentUserCode();
+    const userCode = currentUserCode;
     if (!userCode) return;
-    const res = await toggleBookLike(bookCode, userCode);
+    const res = await toggleBookLike(bookCode);
     if (res && typeof res.count === "number" && typeof res.liked === "boolean") {
       setLikeCount(res.count);
       setLikedByMe(res.liked);
@@ -272,7 +261,7 @@ const SingleBook = () => {
   if (error) return <Typography sx={{ p: 4, color: "error.main" }}>Error: {error}</Typography>;
   if (!book) return <Typography sx={{ p: 4 }}>No book found</Typography>;
 
-  const userCode = getCurrentUserCode();
+  const userCode = currentUserCode;
   const bodyIsHebrew = textContainsHebrew(book.content);
 
   return (

@@ -1,13 +1,20 @@
-const express =require('express')
+const express = require("express");
 
-const categoryController = require('../Controllers/CategoryController')
+const categoryController = require("../Controllers/CategoryController");
+const { authenticate } = require("../middleware/authenticate");
+const { authorize } = require("../middleware/authorize");
 
-const categoryRouter=express.Router()
+const categoryRouter = express.Router();
 
-categoryRouter.get('/',categoryController.getAllCategorys)
-categoryRouter.get('/:id',categoryController.getCategoryById)
-categoryRouter.delete('/:categoryCode',categoryController.deleteCategory)
-categoryRouter.post('/',categoryController.addNewCategory)
-categoryRouter.put('/:id',categoryController.updateCategory)
+categoryRouter.get("/", categoryController.getAllCategorys);
+categoryRouter.get("/:id", categoryController.getCategoryById);
+categoryRouter.delete(
+  "/:categoryCode",
+  authenticate,
+  authorize("manager"),
+  categoryController.deleteCategory
+);
+categoryRouter.post("/", authenticate, authorize("manager"), categoryController.addNewCategory);
+categoryRouter.put("/:id", authenticate, authorize("manager"), categoryController.updateCategory);
 
-module.exports=categoryRouter
+module.exports = categoryRouter;

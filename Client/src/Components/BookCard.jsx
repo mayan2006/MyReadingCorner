@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Box, Typography, IconButton, Tooltip, Chip } from "@mui/material";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
@@ -19,9 +19,11 @@ import {
   laterSeriesWritingCodes
 } from "../utils/freeWritingSeries";
 import { resolveMediaUrl } from "../services/apiBase";
+import { useAuth } from "../context/AuthContext.jsx";
 
 const BookCard = ({ book, onDelete, onLikeChange, onEdit }) => {
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
   const [isSavedForLater, setIsSavedForLater] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [likedByMe, setLikedByMe] = useState(false);
@@ -29,21 +31,11 @@ const BookCard = ({ book, onDelete, onLikeChange, onEdit }) => {
   const rawCover = book?.imageUrl || book?.img || "";
   const coverSrc = rawCover ? resolveMediaUrl(rawCover) : "";
 
-  const currentUserCode = useMemo(() => {
-    const raw = localStorage.getItem("currentUser");
-    if (raw) {
-      try {
-        return JSON.parse(raw)?.userCode || "";
-      } catch {
-        return localStorage.getItem("userCode") || "";
-      }
-    }
-    return localStorage.getItem("userCode") || "";
-  }, []);
+  const currentUserCode = currentUser?.userCode || "";
 
   const refreshLikes = useCallback(async () => {
     if (!book?.bookCode) return;
-    const res = await getBookLikeState(book.bookCode, currentUserCode);
+    const res = await getBookLikeState(book.bookCode);
     if (res && typeof res.count === "number") {
       setLikeCount(res.count);
       setLikedByMe(Boolean(res.likedByUser));
@@ -84,7 +76,7 @@ const BookCard = ({ book, onDelete, onLikeChange, onEdit }) => {
     if (isSavedForLater) {
       try {
         for (const code of laterSeriesWritingCodes(book)) {
-          await deleteMarkedBook(code, currentUserCode);
+          await deleteMarkedBook(code);
         }
         setIsSavedForLater(false);
       } catch {
@@ -97,7 +89,6 @@ const BookCard = ({ book, onDelete, onLikeChange, onEdit }) => {
       const response = await addMarkedBook({
         bookCode: laterMarkedBookCode(book),
         name: book.title || "ללא שם",
-        userCode: currentUserCode,
         date: new Date(),
         bookStatus: "later"
       });
@@ -115,7 +106,7 @@ const BookCard = ({ book, onDelete, onLikeChange, onEdit }) => {
     e.preventDefault();
     e.stopPropagation();
     if (!currentUserCode) return;
-    const res = await toggleBookLike(book.bookCode, currentUserCode);
+    const res = await toggleBookLike(book.bookCode);
     if (res && typeof res.count === "number" && typeof res.liked === "boolean") {
       setLikeCount(res.count);
       setLikedByMe(res.liked);

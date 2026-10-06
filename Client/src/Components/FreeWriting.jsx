@@ -40,26 +40,9 @@ import {
   getSubjectBySubjectCode
 } from "../services/subjectApi";
 import { BOOK_CATEGORIES, DEFAULT_SUBJECT_CATEGORY } from "../constants/bookCategories";
+import { useAuth } from "../context/AuthContext.jsx";
 
 const createWritingCode = () => `FW-${Date.now()}`;
-const getLoggedInUser = () => {
-  const rawCurrentUser = localStorage.getItem("currentUser");
-  if (rawCurrentUser) {
-    try {
-      const parsed = JSON.parse(rawCurrentUser);
-      if (parsed?.userCode) return parsed;
-    } catch {}
-  }
-  const rawUser = localStorage.getItem("user");
-  if (rawUser) {
-    try {
-      const parsed = JSON.parse(rawUser);
-      if (parsed?.userCode) return parsed;
-    } catch {}
-  }
-  const userCode = localStorage.getItem("userCode") || "";
-  return userCode ? { userCode, firstName: "", lastName: "" } : null;
-};
 
 const fwInput = '"Heebo", sans-serif';
 const fwAccent = '"Frank Ruhl Libre", "David", serif';
@@ -250,8 +233,9 @@ export default function FreeWritingForm() {
   const { writingCode: editWritingCode } = useParams();
   const isEditMode = Boolean(editWritingCode);
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
 
-  const loggedInUser = getLoggedInUser();
+  const loggedInUser = currentUser;
   const initialUserCode = loggedInUser?.userCode || "";
   const authorName =
     `${loggedInUser?.firstName || ""} ${loggedInUser?.lastName || ""}`.trim() ||
@@ -433,7 +417,7 @@ export default function FreeWritingForm() {
 
   const uploadCoverIfNeeded = async (writingCode) => {
     if (!coverFile || !writingCode) return;
-    const up = await uploadFreeWritingCover(writingCode, initialUserCode, coverFile);
+    const up = await uploadFreeWritingCover(writingCode, coverFile);
     if (!up || up.message !== "cover updated") {
       const msg = typeof up === "string" ? up : up?.message || "העלאת תמונת הכריכה נכשלה";
       throw new Error(msg);
@@ -461,7 +445,6 @@ export default function FreeWritingForm() {
         ...form,
         subjectCode: editMeta.subjectCode,
         writingCode: editWritingCode,
-        userCode: initialUserCode,
         author: authorName,
         chapter: Number(form.chapter),
         date: new Date(),
@@ -517,7 +500,6 @@ export default function FreeWritingForm() {
       }
       const subRes = await createUserSubjectRequest({
         name: trimmed,
-        userCode: initialUserCode,
         categoryCode: customSubjectCategory
       });
       if (!subRes?.Subject?.subjectCode) {
@@ -539,7 +521,6 @@ export default function FreeWritingForm() {
       writingCode: newCode,
       seriesCode: bookScope === "sequel" && sequelSeriesCode ? sequelSeriesCode : newCode,
       subjectCode: bookScope === "sequel" ? undefined : subjectCode,
-      userCode: initialUserCode,
       author: authorName,
       chapter: bookScope === "sequel" ? 1 : Number(form.chapter),
       name: form.name,

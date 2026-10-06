@@ -2,7 +2,8 @@ require('dotenv').config();
 
 const express = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors'); // ✅ ייבוא CORS
+const cors = require('cors');
+const cookieParser = require('cookie-parser');
 const path = require('path');
 const app = express();
 
@@ -20,6 +21,7 @@ const allowedOrigins = [
 ];
 
 app.use(express.json());
+app.use(cookieParser());
 app.use(
   cors({
     origin(origin, callback) {
@@ -29,6 +31,7 @@ app.use(
         callback(null, false);
       }
     },
+    credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   })

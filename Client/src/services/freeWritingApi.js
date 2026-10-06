@@ -1,11 +1,9 @@
-import axios from "axios";
-import { API_BASE_URL } from "./apiBase";
+import { api } from "./apiBase";
 
 const buildFreeWritingPayload = (body = {}) => ({
   writingCode: body.writingCode,
   seriesCode: body.seriesCode,
   subjectCode: body.subjectCode,
-  userCode: body.userCode,
   author: body.author,
   chapter: body.chapter,
   name: body.name,
@@ -15,23 +13,18 @@ const buildFreeWritingPayload = (body = {}) => ({
   isApproved: body.isApproved
 });
 
-// CREATE
 export const addFreeWriting = async (body) => {
   try {
-    const response = await axios.post(
-      `${API_BASE_URL}/FreeWriting`,
-      buildFreeWritingPayload(body)
-    );
+    const response = await api.post("/FreeWriting", buildFreeWritingPayload(body));
     return response.data;
   } catch (error) {
     return error.response?.data || error.message;
   }
 };
 
-// GET
 export const getAllFreeWriting = async () => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/FreeWriting`);
+    const response = await api.get("/FreeWriting");
     return response.data;
   } catch (error) {
     return error.response?.data || error.message;
@@ -40,7 +33,7 @@ export const getAllFreeWriting = async () => {
 
 export const getFreeWritingById = async (id) => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/FreeWriting/${id}`);
+    const response = await api.get(`/FreeWriting/${id}`);
     return response.data;
   } catch (error) {
     return error.response?.data || error.message;
@@ -49,9 +42,7 @@ export const getFreeWritingById = async (id) => {
 
 export const getFreeWritingByWritingCode = async (writingCode) => {
   try {
-    const response = await axios.get(
-      `${API_BASE_URL}/FreeWriting/by-code/${encodeURIComponent(writingCode)}`
-    );
+    const response = await api.get(`/FreeWriting/by-code/${encodeURIComponent(writingCode)}`);
     return response.data;
   } catch (error) {
     return error.response?.data || error.message;
@@ -60,20 +51,17 @@ export const getFreeWritingByWritingCode = async (writingCode) => {
 
 export const getFreeWritingSeries = async (seriesCode) => {
   try {
-    const response = await axios.get(
-      `${API_BASE_URL}/FreeWriting/series/${encodeURIComponent(seriesCode)}`
-    );
+    const response = await api.get(`/FreeWriting/series/${encodeURIComponent(seriesCode)}`);
     return response.data;
   } catch (error) {
     return error.response?.data || error.message;
   }
 };
 
-// UPDATE
 export const updateFreeWritingByWritingCode = async (writingCode, body) => {
   try {
-    const response = await axios.put(
-      `${API_BASE_URL}/FreeWriting/by-code/${encodeURIComponent(writingCode)}`,
+    const response = await api.put(
+      `/FreeWriting/by-code/${encodeURIComponent(writingCode)}`,
       buildFreeWritingPayload(body)
     );
     return response.data;
@@ -84,38 +72,31 @@ export const updateFreeWritingByWritingCode = async (writingCode, body) => {
 
 export const updateFreeWriting = async (id, body) => {
   try {
-    const response = await axios.put(
-      `${API_BASE_URL}/FreeWriting/${id}`,
-      buildFreeWritingPayload(body)
-    );
+    const response = await api.put(`/FreeWriting/${id}`, buildFreeWritingPayload(body));
     return response.data;
   } catch (error) {
     return error.response?.data || error.message;
   }
 };
 
-export const uploadFreeWritingCover = async (writingCode, userCode, imageFile) => {
+export const uploadFreeWritingCover = async (writingCode, imageFile) => {
   const formData = new FormData();
   formData.append("writingCode", writingCode);
-  formData.append("userCode", userCode);
   formData.append("image", imageFile);
 
   try {
-    const response = await axios.post(
-      `${API_BASE_URL}/FreeWriting/upload-cover`,
-      formData,
-      { headers: { "Content-Type": "multipart/form-data" } }
-    );
+    const response = await api.post("/FreeWriting/upload-cover", formData, {
+      headers: { "Content-Type": "multipart/form-data" }
+    });
     return response.data;
   } catch (error) {
     return error.response?.data || error.message;
   }
 };
 
-// DELETE (server expects writingCode)
 export const deleteFreeWriting = async (writingCode) => {
   try {
-    const response = await axios.delete(`${API_BASE_URL}/FreeWriting/${writingCode}`);
+    const response = await api.delete(`/FreeWriting/${writingCode}`);
     return response.data;
   } catch (error) {
     return error.response?.data || error.message;
