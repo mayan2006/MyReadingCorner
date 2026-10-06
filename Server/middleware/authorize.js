@@ -1,11 +1,13 @@
+const AppError = require("../utils/AppError");
+
 const authorize =
   (...roles) =>
   (req, res, next) => {
     if (!req.user) {
-      return res.status(401).send({ message: "נדרשת התחברות" });
+      return next(new AppError(401, "נדרשת התחברות"));
     }
     if (roles.length && !roles.includes(req.user.role)) {
-      return res.status(403).send({ message: "אין הרשאה לבצע פעולה זו" });
+      return next(new AppError(403, "אין הרשאה לבצע פעולה זו"));
     }
     return next();
   };

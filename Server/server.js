@@ -4,7 +4,11 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
+const helmet = require('helmet');
 const path = require('path');
+const { sanitizeRequest } = require('./middleware/sanitize');
+const { errorHandler } = require('./middleware/errorHandler');
+
 const app = express();
 
 const MONGODB_URI =
@@ -20,8 +24,15 @@ const allowedOrigins = [
     .filter(Boolean),
 ];
 
-app.use(express.json());
+app.set('trust proxy', 1);
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' }
+  })
+);
+app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
+app.use(sanitizeRequest);
 app.use(
   cors({
     origin(origin, callback) {
@@ -38,25 +49,26 @@ app.use(
 );
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-const bookRouter = require('../Server/Routes/BookRoutrer')
-app.use('/books', bookRouter)
-const categoryRouter = require('../Server/Routes/CategoryRouter')
-app.use('/category', categoryRouter)
-const freeWritingRouter =require('../Server/Routes/FreeWritingRouter')
-app.use('/FreeWriting',freeWritingRouter)
-const markedBookRouter=require('../Server/Routes/MarkedBookRouter')
-app.use('/markedBook',markedBookRouter)
-const subjectRouter=require('../Server/Routes/SubjectRouter')
-app.use('/subject',subjectRouter)
-const userRouter=require('../Server/Routes/UserRouter')
-app.use('/user',userRouter)
-const ratingRouter=require('../Server/Routes/RatingRouter')
-app.use('/rating',ratingRouter)
-const bookLikeRouter = require('../Server/Routes/BookLikeRouter')
-app.use('/bookLike', bookLikeRouter)
-const bookResponseRouter = require('../Server/Routes/BookResponseRouter')
-app.use('/bookResponse', bookResponseRouter)
+const bookRouter = require('./Routes/BookRoutrer');
+app.use('/books', bookRouter);
+const categoryRouter = require('./Routes/CategoryRouter');
+app.use('/category', categoryRouter);
+const freeWritingRouter = require('./Routes/FreeWritingRouter');
+app.use('/FreeWriting', freeWritingRouter);
+const markedBookRouter = require('./Routes/MarkedBookRouter');
+app.use('/markedBook', markedBookRouter);
+const subjectRouter = require('./Routes/SubjectRouter');
+app.use('/subject', subjectRouter);
+const userRouter = require('./Routes/UserRouter');
+app.use('/user', userRouter);
+const ratingRouter = require('./Routes/RatingRouter');
+app.use('/rating', ratingRouter);
+const bookLikeRouter = require('./Routes/BookLikeRouter');
+app.use('/bookLike', bookLikeRouter);
+const bookResponseRouter = require('./Routes/BookResponseRouter');
+app.use('/bookResponse', bookResponseRouter);
 
+app.use(errorHandler);
 
 mongoose
   .connect(MONGODB_URI)

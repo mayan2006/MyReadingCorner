@@ -2,6 +2,7 @@ const BookLike = require("../Models/BookLikeModel");
 const Book = require("../Models/BookModel");
 const FreeWriting = require("../Models/FreeWritingModel");
 const User = require("../Models/UserModel");
+const { wrapAsync } = require("../middleware/asyncHandler");
 
 const USER_BOOK_CARD_IMG = "https://placehold.co/600x800?text=User+Book";
 
@@ -32,59 +33,38 @@ const mapLikeToBookCard = async (like) => {
 };
 
 const getBookLikeState = async (req, res) => {
-    try {
-        const { bookCode } = req.params;
-        if (!bookCode) {
-            return res.status(400).send({ message: "bookCode is required" });
-        }
-        const count = await BookLike.countDocuments({ bookCode });
-        let likedByUser = false;
-        if (req.user?.userCode) {
-            likedByUser = !!(await BookLike.findOne({ bookCode, userCode: req.user.userCode }));
-        }
-        res.status(200).send({ bookCode, count, likedByUser });
-    } catch (err) {
-        res.status(500).send({ message: err?.message || "Internal server error" });
+    const { bookCode } = req.params;
+    const count = await BookLike.countDocuments({ bookCode });
+    let likedByUser = false;
+    if (req.user?.userCode) {
+        likedByUser = !!(await BookLike.findOne({ bookCode, userCode: req.user.userCode }));
     }
+    res.status(200).send({ bookCode, count, likedByUser });
 };
 
 const toggleBookLike = async (req, res) => {
-    try {
-        const { bookCode } = req.body;
-        const userCode = req.user.userCode;
-        if (!bookCode) {
-            return res.status(400).send({ message: "bookCode is required" });
-        }
-        const existing = await BookLike.findOne({ bookCode, userCode });
-        if (existing) {
-            await BookLike.deleteOne({ _id: existing._id });
-        } else {
-            await BookLike.create({ bookCode, userCode });
-        }
-        const liked = !existing;
-        const count = await BookLike.countDocuments({ bookCode });
-        res.status(200).send({ message: "ok", liked, count });
-    } catch (err) {
-        res.status(500).send({ message: err?.message || "Internal server error" });
+    const { bookCode } = req.body;
+    const userCode = req.user.userCode;
+    const existing = await BookLike.findOne({ bookCode, userCode });
+    if (existing) {
+        await BookLike.deleteOne({ _id: existing._id });
+    } else {
+        await BookLike.create({ bookCode, userCode });
     }
+    const liked = !existing;
+    const count = await BookLike.countDocuments({ bookCode });
+    res.status(200).send({ message: "ok", liked, count });
 };
 
 const getLikedBooksForUser = async (req, res) => {
-    try {
-        const { userCode } = req.params;
-        if (!userCode) {
-            return res.status(400).send({ message: "userCode is required" });
-        }
-        const likes = await BookLike.find({ userCode }).sort({ createdAt: -1 }).lean();
-        const books = [];
-        for (const like of likes) {
-            const card = await mapLikeToBookCard(like);
-            if (card) books.push(card);
-        }
-        res.status(200).send(books);
-    } catch (err) {
-        res.status(500).send({ message: err?.message || "Internal server error" });
+    const { userCode } = req.params;
+    const likes = await BookLike.find({ userCode }).sort({ createdAt: -1 }).lean();
+    const books = [];
+    for (const like of likes) {
+        const card = await mapLikeToBookCard(like);
+        if (card) books.push(card);
     }
+    res.status(200).send(books);
 };
 
 const getMyLikedBooks = async (req, res) => {
@@ -92,9 +72,9 @@ const getMyLikedBooks = async (req, res) => {
     return getLikedBooksForUser(req, res);
 };
 
-module.exports = {
+module.exports = wrapAsync({
     getBookLikeState,
     toggleBookLike,
     getLikedBooksForUser,
     getMyLikedBooks
-};
+});

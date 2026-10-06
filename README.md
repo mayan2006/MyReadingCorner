@@ -268,7 +268,8 @@ CLIENT_URL=http://localhost:5173
 | Backend | Node.js, Express 5, Mongoose 9 |
 | DB | MongoDB / MongoDB Atlas |
 | Auth | bcrypt, JWT (httpOnly cookies), middleware authenticate/authorize |
-| קבצים | Multer (`Server/uploads`) |
+| אבטחת שרת | Zod, helmet, express-rate-limit, express-mongo-sanitize, error middleware |
+| קבצים | Multer (JPEG/PNG/WebP, עד 2MB) |
 
 ---
 

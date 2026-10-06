@@ -1,5 +1,7 @@
 const User = require("../Models/UserModel");
 const { ACCESS_COOKIE, verifyAccessToken } = require("../utils/tokens");
+const AppError = require("../utils/AppError");
+const { asyncHandler } = require("./asyncHandler");
 
 const toReqUser = (user) => ({
   id: String(user._id),
@@ -19,23 +21,22 @@ const loadUserFromAccessCookie = async (req) => {
   return toReqUser(user);
 };
 
-const authenticate = async (req, res, next) => {
+const authenticate = asyncHandler(async (req, res, next) => {
   try {
     const user = await loadUserFromAccessCookie(req);
     if (!user) {
-      return res.status(401).send({ message: "נדרשת התחברות" });
+      throw new AppError(401, "נדרשת התחברות");
     }
     req.user = user;
     next();
   } catch (err) {
     if (err?.name === "TokenExpiredError" || err?.name === "JsonWebTokenError") {
-      return res.status(401).send({ message: "נדרשת התחברות" });
+      throw new AppError(401, "נדרשת התחברות");
     }
-    return res.status(500).send({ message: err?.message || "Internal server error" });
+    throw err;
   }
-};
+});
 
-/** Public routes that behave differently if a valid cookie exists (e.g. like state). */
 const optionalAuthenticate = async (req, res, next) => {
   try {
     req.user = await loadUserFromAccessCookie(req);

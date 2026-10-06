@@ -3,6 +3,11 @@ const express = require("express");
 const SubjectController = require("../Controllers/SubjectController");
 const { authenticate } = require("../middleware/authenticate");
 const { authorize } = require("../middleware/authorize");
+const { validate } = require("../middleware/validate");
+const {
+  createSubjectRequestSchema,
+  approveSubjectSchema
+} = require("../validators/actionSchemas");
 
 const SubjectRouter = express.Router();
 
@@ -12,10 +17,14 @@ SubjectRouter.get(
   authorize("manager"),
   SubjectController.getPendingSubjects
 );
-/** רשימת כל הנושאים — לפני /:id כדי שלא יילכד id=dynamic */
 SubjectRouter.get("/catalog", SubjectController.getAllSubjects);
 SubjectRouter.get("/", SubjectController.getAllSubjects);
-SubjectRouter.post("/user-request", authenticate, SubjectController.createUserSubjectRequest);
+SubjectRouter.post(
+  "/user-request",
+  authenticate,
+  validate(createSubjectRequestSchema),
+  SubjectController.createUserSubjectRequest
+);
 SubjectRouter.get("/by-code/:subjectCode", SubjectController.getSubjectBySubjectCode);
 SubjectRouter.get("/:id", SubjectController.getSubjectById);
 SubjectRouter.delete(
@@ -30,6 +39,7 @@ SubjectRouter.patch(
   "/:subjectCode/approve",
   authenticate,
   authorize("manager"),
+  validate(approveSubjectSchema),
   SubjectController.approveSubjectByCode
 );
 
