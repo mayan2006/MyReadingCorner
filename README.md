@@ -14,6 +14,7 @@
 - [API — נקודות קצה עיקריות](#api--נקודות-קצה-עיקריות)
 - [נתיבים בלקוח (React Router)](#נתיבים-בלקוח-react-router)
 - [התקנה והרצה](#התקנה-והרצה)
+- [פריסה](#פריסה)
 - [משתני סביבה](#משתני-סביבה)
 - [קטגוריות ונושאים](#קטגוריות-ונושאים)
 - [תפקידים והרשאות](#תפקידים-והרשאות)
@@ -80,26 +81,27 @@
 ## מבנה התיקיות
 
 ```
-Library/
-├── Client/
-│   └── vite-project/          # אפליקציית React
-│       ├── public/            # תמונות סטטיות (לוגו, placeholders)
-│       └── src/
-│           ├── Components/    # רכיבי UI
-│           ├── services/      # קריאות API
-│           ├── constants/     # קטגוריות Navbar
-│           ├── context/       # Context (Dark Mode)
-│           ├── utils/         # לוגיקת סדרות כתיבה
-│           ├── App.jsx        # ניתוב + מצב משתמש
-│           └── main.jsx
+MyReadingCorner/
+├── Client/                    # אפליקציית React (Vite)
+│   ├── public/                # תמונות סטטיות
+│   └── src/
+│       ├── Components/
+│       ├── services/
+│       ├── constants/
+│       ├── context/
+│       ├── utils/
+│       ├── App.jsx
+│       └── main.jsx
 │
 └── Server/
-    ├── server.js              # נקודת כניסה — Express + MongoDB
-    ├── .env                   # MONGODB_URI (לא ב-Git)
-    ├── Controllers/           # לוגיקה עסקית
-    ├── Models/                # סכמות Mongoose
-    ├── Routes/                # ניתוב API
-    └── uploads/               # קבצים שהועלו (תמונות)
+    ├── server.js
+    ├── .env                   # סודות מקומיים (לא ב-Git)
+    ├── .env.example
+    ├── Controllers/
+    ├── Models/
+    ├── Routes/
+    ├── middleware/
+    └── uploads/
 ```
 
 ---
@@ -187,7 +189,7 @@ npm start
 ### 2. לקוח (Frontend)
 
 ```bash
-cd Client/vite-project
+cd Client
 npm install
 npm run dev
 ```
@@ -196,11 +198,35 @@ npm run dev
 
 ### 3. (אופציונלי) כתובת API מותאמת
 
-ב-`Client/vite-project` אפשר ליצור `.env`:
+העתיקי את `Client/.env.example` ל-`Client/.env`:
 
 ```env
 VITE_API_BASE_URL=http://localhost:5000
 ```
+
+---
+
+## פריסה
+
+קישור חי: [https://myreadingcorner-1.onrender.com/](https://myreadingcorner-1.onrender.com/)
+
+| חלק | איפה רץ |
+|------|---------|
+| לקוח | Render (Vite build) |
+| שרת | Render (Node / Express) |
+| DB | MongoDB Atlas |
+
+השרת מאזין ל-`process.env.PORT` (Render מספק את זה). מקומית ברירת המחדל היא 5000.
+
+ב-Dashboard של Render (לא ב-Git) צריך:
+
+| משתנה | ערך בפרודקשן |
+|--------|----------------|
+| `NODE_ENV` | `production` |
+| `CLIENT_URL` | כתובת האתר החי (כדי ש-CORS ו-cookies יעבדו) |
+| `MONGODB_URI` | קישור Atlas |
+| `JWT_ACCESS_SECRET` / `JWT_REFRESH_SECRET` | אותם סודות כמו בפיתוח, או סודות ייעודיים לפרודקשן |
+| `VITE_API_BASE_URL` | כתובת ה-API החי (בבניית הלקוח) |
 
 ---
 
@@ -213,6 +239,8 @@ MONGODB_URI=mongodb+srv://USER:PASSWORD@cluster.mongodb.net/mySiteDB?retryWrites
 JWT_ACCESS_SECRET=replace-with-a-long-random-string
 JWT_REFRESH_SECRET=replace-with-another-long-random-string
 CLIENT_URL=http://localhost:5173
+NODE_ENV=development
+PORT=5000
 ```
 
 | משתנה | תיאור |
@@ -221,6 +249,14 @@ CLIENT_URL=http://localhost:5173
 | `JWT_ACCESS_SECRET` | סוד לחתימת access token (קצר) |
 | `JWT_REFRESH_SECRET` | סוד לחתימת refresh token (ארוך) |
 | `CLIENT_URL` | כתובת הלקוח ל-CORS (אפשר כמה כתובות מופרדות בפסיק) |
+| `NODE_ENV` | `development` מקומית, `production` ב-Render |
+| `PORT` | פורט השרת. מקומית 5000; ב-Render מגיע אוטומטית |
+
+### Client — `Client/.env` (מ-`Client/.env.example`)
+
+```env
+VITE_API_BASE_URL=http://localhost:5000
+```
 
 > **אל תעלי את `.env` ל-Git.** הקובץ כבר ב-`.gitignore`.
 
@@ -233,7 +269,7 @@ CLIENT_URL=http://localhost:5173
 
 ## קטגוריות ונושאים
 
-טאבי ה-Navbar מוגדרים ב-`Client/vite-project/src/constants/bookCategories.js`:
+טאבי ה-Navbar מוגדרים ב-`Client/src/constants/bookCategories.js`:
 
 - **הכל**
 - פנטזיה
@@ -278,7 +314,7 @@ CLIENT_URL=http://localhost:5173
 - JWT + הרשאות בשרת — בוצע
 - העברת כל קבועי הקטגוריות ל-DB בלבד
 - בדיקות אוטומטיות (API + רכיבים)
-- פריסה (Render / Railway / Vercel + Atlas)
+- פריסה חיה — בוצע (Render + Atlas)
 
 ---
 
