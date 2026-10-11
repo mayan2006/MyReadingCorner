@@ -9,7 +9,10 @@ const refreshSecret = () =>
   process.env.JWT_REFRESH_SECRET || "dev-refresh-secret-change-me";
 
 const cookieBaseOptions = () => {
-  const isProd = process.env.NODE_ENV === "production";
+  // Render hosts the frontend and API on different onrender.com subdomains
+  // (public suffix), so the browser treats them as cross-site.
+  const isProd =
+    process.env.NODE_ENV === "production" || Boolean(process.env.RENDER);
   return {
     httpOnly: true,
     secure: isProd,

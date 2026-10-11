@@ -101,11 +101,7 @@ export const uploadUserImage = async (imageFile) => {
   formData.append("image", imageFile);
 
   try {
-    const response = await api.post("/user/upload-image", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data"
-      }
-    });
+    const response = await api.post("/user/upload-image", formData);
     return response.data;
   } catch (error) {
     return error.response?.data || error.message;
