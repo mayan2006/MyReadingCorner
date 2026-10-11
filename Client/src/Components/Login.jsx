@@ -6,6 +6,7 @@ import {
   Typography,
   Paper,
   InputAdornment,
+  IconButton,
   Alert,
   Link
 } from "@mui/material";
@@ -13,12 +14,15 @@ import { useNavigate, Link as RouterLink } from "react-router-dom";
 import { loginUser } from "../services/UserAPI";
 import EmailIcon from "@mui/icons-material/Email";
 import LockIcon from "@mui/icons-material/Lock";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
 
 export default function Login({ onLogin }) {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -109,7 +113,7 @@ export default function Login({ onLogin }) {
           />
           <TextField
             label="סיסמה"
-            type="password"
+            type={showPassword ? "text" : "password"}
             name="password"
             fullWidth
             margin="normal"
@@ -120,6 +124,19 @@ export default function Login({ onLogin }) {
               startAdornment: (
                 <InputAdornment position="start">
                   <LockIcon />
+                </InputAdornment>
+              ),
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    type="button"
+                    aria-label={showPassword ? "הסתר סיסמה" : "הצג סיסמה"}
+                    onClick={() => setShowPassword((open) => !open)}
+                    onMouseDown={(e) => e.preventDefault()}
+                    edge="end"
+                  >
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
                 </InputAdornment>
               )
             }}
