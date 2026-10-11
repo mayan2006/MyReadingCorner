@@ -5,6 +5,7 @@ const { authorize } = require("../middleware/authorize");
 
 const BookRouter = express.Router();
 
+BookRouter.get("/popular", BookController.getPopularBooks);
 BookRouter.get("/code/:bookCode", BookController.getBookByCode);
 BookRouter.get("/:id", BookController.getBookById);
 BookRouter.get("/", BookController.getAllBooks);

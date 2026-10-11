@@ -2,6 +2,7 @@ const FreeWriting = require("../Models/FreeWritingModel");
 const { isOwnerOrManager } = require("../middleware/authorize");
 const AppError = require("../utils/AppError");
 const { wrapAsync } = require("../middleware/asyncHandler");
+const { persistUploadedImage } = require("../utils/cloudinary");
 
 const getAllFreeWriting = async (req, res) => {
     const allFreeWriting = await FreeWriting.find();
@@ -76,7 +77,7 @@ const uploadCoverImage = async (req, res) => {
         throw new AppError(403, "Forbidden");
     }
 
-    doc.img = `/uploads/${req.file.filename}`;
+    doc.img = await persistUploadedImage(req.file, "covers");
     await doc.save();
 
     res.status(200).send({ message: "cover updated", freeWriting: doc });

@@ -31,14 +31,10 @@ import {
 import { styled } from "@mui/material/styles";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import axios from "axios";
-import { API_BASE_URL, resolveMediaUrl } from "../services/apiBase";
-import { getAllFreeWriting } from "../services/freeWritingApi";
-import { groupFreeWritingsBySeries, mapSeriesGroupToCatalogBook } from "../utils/freeWritingSeries";
+import { resolveMediaUrl } from "../services/apiBase";
+import { searchBooks } from "../services/booksApi";
 import { getAllSubjects } from "../services/subjectApi";
 import { NAV_CATEGORY_TABS, normalizeNavCategory } from "../constants/bookCategories";
-
-const USER_BOOK_SEARCH_IMG = "https://placehold.co/600x800?text=User+Book";
 
 const SearchWrap = styled("div")(({ theme }) => ({
   flex: "1 1 auto",
@@ -49,8 +45,9 @@ const SearchWrap = styled("div")(({ theme }) => ({
 
 export default function Navbar({ currentUser, onLogout, selectedCategory, onCategorySelect }) {
   const [search, setSearch] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
-  const [allBooks, setAllBooks] = useState([]);
 
   // subjects mega-panel (hover)
   const [allSubjects, setAllSubjects] = useState([]);
@@ -176,32 +173,27 @@ export default function Navbar({ currentUser, onLogout, selectedCategory, onCate
   };
 
   useEffect(() => {
-    const fetchBooksForSearch = async () => {
+    const query = search.trim();
+    if (query.length < 2) {
+      setSearchResults([]);
+      setSearchLoading(false);
+      return undefined;
+    }
+
+    const timer = setTimeout(async () => {
+      setSearchLoading(true);
       try {
-        const [booksRes, freeWritingRes] = await Promise.all([
-          axios.get(`${API_BASE_URL}/books`),
-          getAllFreeWriting()
-        ]);
-        const catalog = Array.isArray(booksRes.data) ? booksRes.data : [];
-        const freeList = Array.isArray(freeWritingRes) ? freeWritingRes : [];
-        const fwGroups = groupFreeWritingsBySeries(freeList);
-        const userBooks = fwGroups.map((g) => {
-          const row = mapSeriesGroupToCatalogBook(g, USER_BOOK_SEARCH_IMG);
-          return {
-            bookCode: row.bookCode,
-            title: row.title,
-            author: row.author,
-            userCode: row.authorUserCode,
-            searchHaystack: row.searchHaystack
-          };
-        });
-        setAllBooks([...catalog, ...userBooks]);
+        const data = await searchBooks(query, 7);
+        setSearchResults(Array.isArray(data?.items) ? data.items : []);
       } catch {
-        setAllBooks([]);
+        setSearchResults([]);
+      } finally {
+        setSearchLoading(false);
       }
-    };
-    fetchBooksForSearch();
-  }, []);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const navAvatarSrc = useMemo(() => {
     const img = currentUser?.img;
@@ -209,24 +201,7 @@ export default function Navbar({ currentUser, onLogout, selectedCategory, onCate
     return resolveMediaUrl(img);
   }, [currentUser?.img]);
 
-  const filteredBooks = useMemo(() => {
-    const query = search.trim().toLowerCase();
-    if (!query) return [];
-    return allBooks
-      .filter((book) => {
-        const title = (book.title || "").toLowerCase();
-        const author = (book.author || "").toLowerCase();
-        const userCode = (book.userCode || "").toLowerCase();
-        const haystack = (book.searchHaystack || "").toLowerCase();
-        return (
-          title.includes(query) ||
-          author.includes(query) ||
-          userCode.includes(query) ||
-          haystack.includes(query)
-        );
-      })
-      .slice(0, 7);
-  }, [allBooks, search]);
+  const filteredBooks = searchResults;
 
   const handleMenuOpen = (e) => setAnchorEl(e.currentTarget);
   const handleMenuClose = () => setAnchorEl(null);
@@ -544,7 +519,13 @@ export default function Navbar({ currentUser, onLogout, selectedCategory, onCate
                   setSearch("");
                 }
               }}
-              noOptionsText={search ? "לא נמצאו ספרים" : "התחילו להקליד לחיפוש"}
+              noOptionsText={
+                searchLoading
+                  ? "מחפש..."
+                  : search.trim().length >= 2
+                    ? "לא נמצאו ספרים"
+                    : "הקלידו לפחות 2 תווים לחיפוש"
+              }
               renderOption={(props, option) => (
                 <Box
                   component="li"

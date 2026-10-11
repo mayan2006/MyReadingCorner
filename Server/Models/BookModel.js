@@ -31,5 +31,12 @@ const bookSchema = new mongoose.Schema({
         required: true
     }
 })
+
+bookSchema.index({ bookCode: 1 }, { unique: true });
+bookSchema.index(
+    { title: "text", author: "text", summary: "text" },
+    { default_language: "none", weights: { title: 5, author: 3, summary: 1 } }
+);
+
 const Book = mongoose.model('Book', bookSchema)
 module.exports=Book

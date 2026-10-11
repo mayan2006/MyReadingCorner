@@ -31,5 +31,8 @@ const subjectSchema = new mongoose.Schema({
         default: ""
     }
 })
+
+subjectSchema.index({ subjectCode: 1 }, { unique: true });
+
 const Subject = mongoose.model('Subject', subjectSchema)
 module.exports=Subject

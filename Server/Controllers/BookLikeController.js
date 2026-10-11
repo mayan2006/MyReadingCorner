@@ -6,32 +6,6 @@ const { wrapAsync } = require("../middleware/asyncHandler");
 
 const USER_BOOK_CARD_IMG = "https://placehold.co/600x800?text=User+Book";
 
-const mapLikeToBookCard = async (like) => {
-    const normal = await Book.findOne({ bookCode: like.bookCode }).lean();
-    if (normal) {
-        return { ...normal, authorUserCode: null };
-    }
-    const fw = await FreeWriting.findOne({ writingCode: like.bookCode }).lean();
-    if (!fw) return null;
-    const fwAuthor = await User.findOne({ userCode: fw.userCode })
-        .select("firstName lastName")
-        .lean();
-    const authorName =
-        fw.author ||
-        (fwAuthor ? `${fwAuthor.firstName || ""} ${fwAuthor.lastName || ""}`.trim() : "") ||
-        fw.userCode;
-    return {
-        bookCode: fw.writingCode,
-        categoryCode: "ספרי משתמשים",
-        title: fw.name || `כתיבה ${fw.writingCode}`,
-        author: authorName,
-        authorUserCode: fw.userCode,
-        summary: fw.summary || "",
-        img: USER_BOOK_CARD_IMG,
-        content: fw.content || ""
-    };
-};
-
 const getBookLikeState = async (req, res) => {
     const { bookCode } = req.params;
     const count = await BookLike.countDocuments({ bookCode });
@@ -59,11 +33,45 @@ const toggleBookLike = async (req, res) => {
 const getLikedBooksForUser = async (req, res) => {
     const { userCode } = req.params;
     const likes = await BookLike.find({ userCode }).sort({ createdAt: -1 }).lean();
-    const books = [];
-    for (const like of likes) {
-        const card = await mapLikeToBookCard(like);
-        if (card) books.push(card);
-    }
+    const codes = likes.map((like) => like.bookCode);
+    const [catalog, writings] = await Promise.all([
+        Book.find({ bookCode: { $in: codes } }).lean(),
+        FreeWriting.find({ writingCode: { $in: codes } }).lean()
+    ]);
+    const catalogByCode = new Map(catalog.map((book) => [book.bookCode, book]));
+    const writingByCode = new Map(writings.map((fw) => [fw.writingCode, fw]));
+    const authorCodes = [...new Set(writings.map((fw) => fw.userCode).filter(Boolean))];
+    const authors = await User.find({ userCode: { $in: authorCodes } })
+        .select("userCode firstName lastName")
+        .lean();
+    const authorByCode = new Map(authors.map((user) => [user.userCode, user]));
+
+    const books = likes
+        .map((like) => {
+            const catalogBook = catalogByCode.get(like.bookCode);
+            if (catalogBook) {
+                return { ...catalogBook, authorUserCode: null };
+            }
+            const fw = writingByCode.get(like.bookCode);
+            if (!fw) return null;
+            const fwAuthor = authorByCode.get(fw.userCode);
+            const authorName =
+                fw.author ||
+                (fwAuthor ? `${fwAuthor.firstName || ""} ${fwAuthor.lastName || ""}`.trim() : "") ||
+                fw.userCode;
+            return {
+                bookCode: fw.writingCode,
+                categoryCode: "ספרי משתמשים",
+                title: fw.name || `כתיבה ${fw.writingCode}`,
+                author: authorName,
+                authorUserCode: fw.userCode,
+                summary: fw.summary || "",
+                img: fw.img || USER_BOOK_CARD_IMG,
+                content: fw.content || ""
+            };
+        })
+        .filter(Boolean);
+
     res.status(200).send(books);
 };
 

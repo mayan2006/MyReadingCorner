@@ -14,7 +14,7 @@ export const saveRating = async (body) => {
 
 export const getAverageRatingByBookCode = async (bookCode) => {
   try {
-    const response = await api.get(`/rating/book/${bookCode}/average`);
+    const response = await api.get(`/rating/summary/${bookCode}`);
     return response.data;
   } catch (error) {
     return error.response?.data || error.message;

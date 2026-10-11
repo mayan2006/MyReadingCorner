@@ -51,5 +51,14 @@ const freeWritingSchema = new mongoose.Schema({
     }
 
 })
+
+freeWritingSchema.index({ writingCode: 1 }, { unique: true });
+freeWritingSchema.index({ seriesCode: 1 });
+freeWritingSchema.index({ userCode: 1 });
+freeWritingSchema.index(
+    { name: "text", author: "text", summary: "text" },
+    { default_language: "none", weights: { name: 5, author: 3, summary: 1 } }
+);
+
 const FreeWriting = mongoose.model('FreeWriting', freeWritingSchema)
 module.exports=FreeWriting

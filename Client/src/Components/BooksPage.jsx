@@ -3,9 +3,11 @@ import { useSearchParams, Link as RouterLink } from "react-router-dom";
 import axios from "axios";
 import { API_BASE_URL } from "../services/apiBase";
 import { getAllFreeWriting } from "../services/freeWritingApi";
+import { getPopularBooks } from "../services/booksApi";
 import { groupFreeWritingsBySeries, mapSeriesGroupToCatalogBook } from "../utils/freeWritingSeries";
 import { Box, Container, Typography, Alert, Button } from "@mui/material";
-import ThreeBookCarousels from "./ThreeBookCarousels";
+import ThreeBookCarousels, { GoldDivider } from "./ThreeBookCarousels";
+import BookCarouselSection from "./BookCarouselSection";
 
 const normalize = (value = "") => value.toString().trim().toLowerCase();
 const USER_BOOKS_CATEGORY_NAME = "ספרי משתמשים";
@@ -20,15 +22,17 @@ const BooksPage = ({ selectedCategory }) => {
   const [books, setBooks] = useState([]);
   const [categories, setCategories] = useState([]);
   const [userBooks, setUserBooks] = useState([]);
+  const [popularBooks, setPopularBooks] = useState([]);
   const skipCategoryScrollOnce = useRef(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [booksRes, categoriesRes, freeWritingRes] = await Promise.all([
+        const [booksRes, categoriesRes, freeWritingRes, popularRes] = await Promise.all([
           axios.get(`${API_BASE_URL}/books`),
           axios.get(`${API_BASE_URL}/category`),
-          getAllFreeWriting()
+          getAllFreeWriting(),
+          getPopularBooks(8).catch(() => [])
         ]);
 
         setBooks(booksRes.data || []);
@@ -41,6 +45,7 @@ const BooksPage = ({ selectedCategory }) => {
         );
 
         setUserBooks(mappedUserBooks);
+        setPopularBooks(Array.isArray(popularRes) ? popularRes : []);
       } catch (error) {
         console.error("Failed to fetch data:", error);
       }
@@ -87,6 +92,10 @@ const BooksPage = ({ selectedCategory }) => {
   }, [subjectCodeFilter, selectedCategory, selectedCategoryCode, userBooks, books]);
 
   const showSubjectBanner = Boolean(subjectCodeFilter);
+  const showPopularRow =
+    !subjectCodeFilter &&
+    (selectedCategory === "all" || !selectedCategory) &&
+    popularBooks.length > 0;
 
   const emptyListMessage = useMemo(() => {
     if (subjectCodeFilter) return "אין ספרים מקושרים לנושא זה כרגע.";
@@ -172,6 +181,17 @@ const BooksPage = ({ selectedCategory }) => {
           >
             הצג את כל הספרים בקטגוריה
           </Button>
+        </Box>
+      ) : null}
+
+      {showPopularRow ? (
+        <Box sx={{ mb: 1 }}>
+          <BookCarouselSection
+            title="הכי אהובים בספריה"
+            subtitle="הספרים שקיבלו הכי הרבה לייקים ודירוגים"
+            books={popularBooks}
+          />
+          {filteredBooks.length > 0 ? <GoldDivider /> : null}
         </Box>
       ) : null}
 

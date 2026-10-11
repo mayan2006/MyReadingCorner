@@ -16,6 +16,7 @@ const bookLikeSchema = new mongoose.Schema({
 });
 
 bookLikeSchema.index({ bookCode: 1, userCode: 1 }, { unique: true });
+bookLikeSchema.index({ userCode: 1, createdAt: -1 });
 
 const BookLike = mongoose.model("BookLike", bookLikeSchema);
 module.exports = BookLike;

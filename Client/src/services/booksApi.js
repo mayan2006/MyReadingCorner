@@ -1,5 +1,5 @@
 import axios from "axios";
-import { API_BASE_URL } from "./apiBase";
+import { API_BASE_URL, api } from "./apiBase";
 
 const buildBookPayload = (body = {}) => ({
   bookCode: body.bookCode,
@@ -29,6 +29,16 @@ export const getAllBooks = async () => {
   } catch (error) {
     return error.response?.data || error.message;
   }
+};
+
+export const searchBooks = async (q, limit = 7, page = 1) => {
+  const response = await api.get("/books", { params: { q, limit, page } });
+  return response.data;
+};
+
+export const getPopularBooks = async (limit = 12) => {
+  const response = await api.get("/books/popular", { params: { limit } });
+  return response.data;
 };
 
 export const getBookById = async (id) => {

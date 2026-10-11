@@ -12,6 +12,7 @@ const {
 const { isOwnerOrManager } = require("../middleware/authorize");
 const AppError = require("../utils/AppError");
 const { wrapAsync } = require("../middleware/asyncHandler");
+const { persistUploadedImage } = require("../utils/cloudinary");
 
 const USER_BOOK_CARD_IMG = "https://placehold.co/600x800?text=User+Book";
 
@@ -255,7 +256,7 @@ const updateUserImage = async (req, res) => {
         throw new AppError(404, "user not found");
     }
 
-    user.img = `/uploads/${req.file.filename}`;
+    user.img = await persistUploadedImage(req.file, "profiles");
     await user.save();
 
     return res.status(200).send({

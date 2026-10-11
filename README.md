@@ -241,6 +241,9 @@ JWT_REFRESH_SECRET=replace-with-another-long-random-string
 CLIENT_URL=http://localhost:5173
 NODE_ENV=development
 PORT=5000
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
 ```
 
 | משתנה | תיאור |
@@ -251,6 +254,7 @@ PORT=5000
 | `CLIENT_URL` | כתובת הלקוח ל-CORS (אפשר כמה כתובות מופרדות בפסיק) |
 | `NODE_ENV` | `development` מקומית, `production` ב-Render |
 | `PORT` | פורט השרת. מקומית 5000; ב-Render מגיע אוטומטית |
+| `CLOUDINARY_*` | העלאת פרופיל וכריכה לענן. בלי זה הקבצים נשמרים ב-`Server/uploads` |
 
 ### Client — `Client/.env` (מ-`Client/.env.example`)
 
@@ -305,7 +309,8 @@ VITE_API_BASE_URL=http://localhost:5000
 | DB | MongoDB / MongoDB Atlas |
 | Auth | bcrypt, JWT (httpOnly cookies), middleware authenticate/authorize |
 | אבטחת שרת | Zod, helmet, express-rate-limit, express-mongo-sanitize, error middleware |
-| קבצים | Multer (JPEG/PNG/WebP, עד 2MB) |
+| קבצים | Multer + Cloudinary (JPEG/PNG/WebP, עד 2MB; נפילה ל-`/uploads`) |
+| חיפוש ו־DB | אינדקסים, `$text`, aggregation, עימוד |
 
 ---
 

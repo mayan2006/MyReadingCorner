@@ -22,6 +22,18 @@ const errorHandler = (err, req, res, next) => {
     return res.status(400).send({ message: "מזהה לא תקין" });
   }
 
+  if (err.code === 11000) {
+    const field = Object.keys(err.keyPattern || err.keyValue || {})[0];
+    const messages = {
+      email: "האימייל כבר קיים במערכת",
+      userCode: "קוד המשתמש כבר תפוס",
+      bookCode: "קוד הספר כבר קיים",
+      writingCode: "קוד הכתיבה כבר קיים",
+      subjectCode: "קוד הנושא כבר קיים"
+    };
+    return res.status(409).send({ message: messages[field] || "ערך כפול במערכת" });
+  }
+
   const statusCode = err.statusCode || err.status || 500;
   const isServerError = statusCode >= 500;
   if (isServerError) {

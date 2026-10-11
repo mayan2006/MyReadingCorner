@@ -53,6 +53,20 @@ describe("Auth", () => {
     expect(res.status).toBe(401);
   });
 
+  it("rejects a second signup with the same email", async () => {
+    await signupUser({
+      userCode: "U-AUTH-DUP-1",
+      email: "dup@test.com"
+    });
+
+    const res = await signupUser({
+      userCode: "U-AUTH-DUP-2",
+      email: "dup@test.com"
+    });
+
+    expect(res.status).toBe(409);
+  });
+
   it("returns the current user when an accessToken cookie is present", async () => {
     const signup = await signupUser({
       userCode: "U-AUTH-4",

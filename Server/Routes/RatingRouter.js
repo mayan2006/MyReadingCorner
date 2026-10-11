@@ -7,6 +7,7 @@ const { upsertRatingSchema } = require("../validators/actionSchemas");
 const ratingRouter = express.Router();
 
 ratingRouter.post("/", authenticate, validate(upsertRatingSchema), ratingController.upsertRating);
+ratingRouter.get("/summary/:bookCode", ratingController.getAverageByBookCode);
 ratingRouter.get("/book/:bookCode/average", ratingController.getAverageByBookCode);
 ratingRouter.get("/book/:bookCode/me", authenticate, ratingController.getMyRatingByBookCode);
 
