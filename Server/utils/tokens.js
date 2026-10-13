@@ -43,7 +43,8 @@ const verifyRefreshToken = (token) => jwt.verify(token, refreshSecret());
 
 const setAuthCookies = (res, user) => {
   const options = cookieBaseOptions();
-  res.cookie(ACCESS_COOKIE, signAccessToken(user), {
+  const accessToken = signAccessToken(user);
+  res.cookie(ACCESS_COOKIE, accessToken, {
     ...options,
     maxAge: 15 * 60 * 1000
   });
@@ -51,6 +52,7 @@ const setAuthCookies = (res, user) => {
     ...options,
     maxAge: 7 * 24 * 60 * 60 * 1000
   });
+  return { accessToken };
 };
 
 const clearAuthCookies = (res) => {

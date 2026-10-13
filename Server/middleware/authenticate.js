@@ -9,8 +9,15 @@ const toReqUser = (user) => ({
   role: user.role || "user"
 });
 
+const bearerAccessToken = (req) => {
+  const header = req.headers.authorization || req.headers.Authorization || "";
+  const [scheme, token] = String(header).split(" ");
+  if (scheme !== "Bearer" || !token) return "";
+  return token;
+};
+
 const loadUserFromAccessCookie = async (req) => {
-  const token = req.cookies?.[ACCESS_COOKIE];
+  const token = req.cookies?.[ACCESS_COOKIE] || bearerAccessToken(req);
   if (!token) return null;
 
   const decoded = verifyAccessToken(token);

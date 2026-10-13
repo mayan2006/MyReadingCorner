@@ -1,14 +1,21 @@
 const multer = require("multer");
 const AppError = require("../utils/AppError");
 
-const ALLOWED_MIME = new Set(["image/jpeg", "image/jpg", "image/png", "image/webp"]);
+const ALLOWED_MIME = new Set([
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/webp",
+  "image/heic",
+  "image/heif"
+]);
 
 const imageFileFilter = (_req, file, cb) => {
   if (ALLOWED_MIME.has(file.mimetype)) {
     cb(null, true);
     return;
   }
-  cb(new AppError(400, "נא להעלות תמונה מסוג JPEG, PNG או WebP"));
+  cb(new AppError(400, "נא להעלות תמונה מסוג JPEG, PNG, WebP או HEIC"));
 };
 
 const createImageUpload = () =>

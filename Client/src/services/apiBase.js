@@ -1,13 +1,66 @@
 import axios from "axios";
 
-export const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+const envUrl = (import.meta.env.VITE_API_BASE_URL || "").trim().replace(/\/$/, "");
+
+/** In production the app talks to `/api` on the same origin so iPhone Safari
+ *  will store auth cookies (onrender.com frontend + API are cross-site). */
+export const API_BASE_URL = import.meta.env.PROD ? "/api" : envUrl || "/api";
+
+const ACCESS_TOKEN_KEY = "mrcAccessToken";
+
+let memoryAccessToken = "";
+
+const readStoredAccessToken = () => {
+  try {
+    return sessionStorage.getItem(ACCESS_TOKEN_KEY) || "";
+  } catch {
+    return "";
+  }
+};
+
+export const setAccessToken = (token = "") => {
+  memoryAccessToken = token || "";
+  try {
+    if (memoryAccessToken) sessionStorage.setItem(ACCESS_TOKEN_KEY, memoryAccessToken);
+    else sessionStorage.removeItem(ACCESS_TOKEN_KEY);
+  } catch {
+    /* private mode */
+  }
+};
+
+setAccessToken(readStoredAccessToken());
 
 axios.defaults.withCredentials = true;
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: true
+});
+
+const stripContentType = (headers) => {
+  if (!headers) return;
+  if (typeof headers.delete === "function") {
+    headers.delete("Content-Type");
+    headers.delete("content-type");
+    return;
+  }
+  delete headers["Content-Type"];
+  delete headers["content-type"];
+};
+
+api.interceptors.request.use((config) => {
+  if (memoryAccessToken) {
+    config.headers = config.headers || {};
+    if (typeof config.headers.set === "function") {
+      config.headers.set("Authorization", `Bearer ${memoryAccessToken}`);
+    } else {
+      config.headers.Authorization = `Bearer ${memoryAccessToken}`;
+    }
+  }
+  if (typeof FormData !== "undefined" && config.data instanceof FormData) {
+    stripContentType(config.headers);
+  }
+  return config;
 });
 
 let refreshPromise = null;
@@ -26,7 +79,13 @@ const shouldSkipRefresh = (config) => {
 };
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    const token = response?.data?.accessToken;
+    if (typeof token === "string" && token) {
+      setAccessToken(token);
+    }
+    return response;
+  },
   async (error) => {
     const original = error.config;
     if (
@@ -46,8 +105,12 @@ api.interceptors.response.use(
         });
       }
       await refreshPromise;
+      if (typeof FormData !== "undefined" && original.data instanceof FormData) {
+        stripContentType(original.headers);
+      }
       return api(original);
     } catch (refreshErr) {
+      setAccessToken("");
       return Promise.reject(refreshErr);
     }
   }

@@ -1,5 +1,5 @@
 import axios from "axios";
-import { API_BASE_URL, api } from "./apiBase";
+import { API_BASE_URL, api, setAccessToken } from "./apiBase";
 
 const buildUserPayload = (body = {}) => ({
   userCode: body.userCode,
@@ -33,6 +33,8 @@ export const logoutUser = async () => {
     const serverMessage =
       error?.response?.data?.message || error?.message || "התנתקות נכשלה";
     throw new Error(serverMessage);
+  } finally {
+    setAccessToken("");
   }
 };
 

@@ -107,8 +107,12 @@ const loginUser = async (req, res) => {
     if (!match) {
         throw new AppError(401, "אימייל או סיסמה שגויים");
     }
-    setAuthCookies(res, user);
-    res.status(200).send({ message: "התחברות הצליחה", user: stripUserForClient(user) });
+    const { accessToken } = setAuthCookies(res, user);
+    res.status(200).send({
+        message: "התחברות הצליחה",
+        user: stripUserForClient(user),
+        accessToken
+    });
 };
 
 const logoutUser = async (req, res) => {
@@ -132,8 +136,12 @@ const refreshSession = async (req, res) => {
             clearAuthCookies(res);
             throw new AppError(401, "נדרשת התחברות");
         }
-        setAuthCookies(res, user);
-        res.status(200).send({ message: "session refreshed", user: stripUserForClient(user) });
+        const { accessToken } = setAuthCookies(res, user);
+        res.status(200).send({
+            message: "session refreshed",
+            user: stripUserForClient(user),
+            accessToken
+        });
     } catch (err) {
         if (err instanceof AppError) throw err;
         clearAuthCookies(res);
@@ -157,8 +165,12 @@ const addNewUser = async (req, res) => {
     body.role = "user";
     const newUser = new User(body);
     await newUser.save();
-    setAuthCookies(res, newUser);
-    res.status(200).send({ message: "Store added to DB", user: stripUserForClient(newUser) });
+    const { accessToken } = setAuthCookies(res, newUser);
+    res.status(200).send({
+        message: "Store added to DB",
+        user: stripUserForClient(newUser),
+        accessToken
+    });
 };
 
 const updateUser = async (req, res) => {

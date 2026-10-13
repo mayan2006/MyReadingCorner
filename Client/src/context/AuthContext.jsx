@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { api } from "../services/apiBase";
+import { api, setAccessToken } from "../services/apiBase";
 
 const AuthContext = createContext(null);
 
@@ -40,6 +40,7 @@ export function AuthProvider({ children }) {
     } catch {
       /* cookies are cleared on the server even if this fails */
     }
+    setAccessToken("");
     setCurrentUser(null);
   }, []);
 

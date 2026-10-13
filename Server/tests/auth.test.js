@@ -80,4 +80,23 @@ describe("Auth", () => {
     expect(res.status).toBe(200);
     expect(res.body.user.userCode).toBe("U-AUTH-4");
   });
+
+  it("returns an accessToken in the login body and accepts a Bearer header", async () => {
+    await signupUser({
+      userCode: "U-AUTH-5",
+      email: "auth5@test.com"
+    });
+
+    const login = await loginUser("auth5@test.com");
+    expect(login.status).toBe(200);
+    expect(typeof login.body.accessToken).toBe("string");
+    expect(login.body.accessToken.length).toBeGreaterThan(10);
+
+    const res = await request(app)
+      .get("/user/me")
+      .set("Authorization", `Bearer ${login.body.accessToken}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.user.userCode).toBe("U-AUTH-5");
+  });
 });

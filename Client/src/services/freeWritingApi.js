@@ -85,9 +85,7 @@ export const uploadFreeWritingCover = async (writingCode, imageFile) => {
   formData.append("image", imageFile);
 
   try {
-    const response = await api.post("/FreeWriting/upload-cover", formData, {
-      headers: { "Content-Type": "multipart/form-data" }
-    });
+    const response = await api.post("/FreeWriting/upload-cover", formData);
     return response.data;
   } catch (error) {
     return error.response?.data || error.message;

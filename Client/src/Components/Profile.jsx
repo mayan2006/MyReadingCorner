@@ -155,7 +155,13 @@ export default function Profile() {
                   {isUploading ? <CircularProgress size={18} sx={{ color: "#fff" }} /> : <PhotoCameraRoundedIcon fontSize="small" />}
                 </IconButton>
               </Tooltip>
-              <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageChange} style={{ display: "none" }} />
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+                onChange={handleImageChange}
+                style={{ display: "none" }}
+              />
             </Box>
 
             {/* Title + meta */}
