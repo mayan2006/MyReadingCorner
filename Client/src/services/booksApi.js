@@ -1,5 +1,10 @@
 import axios from "axios";
 import { API_BASE_URL, api } from "./apiBase";
+import { getAllFreeWriting } from "./freeWritingApi";
+import { getAllCategory } from "./categoryApi";
+import { groupFreeWritingsBySeries, mapSeriesGroupToCatalogBook } from "../utils/freeWritingSeries";
+
+const USER_BOOKS_FALLBACK_IMAGE = "https://placehold.co/600x800?text=User+Book";
 
 const buildBookPayload = (body = {}) => ({
   bookCode: body.bookCode,
@@ -39,6 +44,27 @@ export const searchBooks = async (q, limit = 7, page = 1) => {
 export const getPopularBooks = async (limit = 12) => {
   const response = await api.get("/books/popular", { params: { limit } });
   return response.data;
+};
+
+export const fetchCatalogPage = async () => {
+  const [booksRes, categories, freeWritingRes, popularRes] = await Promise.all([
+    axios.get(`${API_BASE_URL}/books`),
+    getAllCategory(),
+    getAllFreeWriting(),
+    getPopularBooks(8).catch(() => [])
+  ]);
+
+  const freeWritingRecords = Array.isArray(freeWritingRes) ? freeWritingRes : [];
+  const userBooks = groupFreeWritingsBySeries(freeWritingRecords).map((g) =>
+    mapSeriesGroupToCatalogBook(g, USER_BOOKS_FALLBACK_IMAGE)
+  );
+
+  return {
+    books: Array.isArray(booksRes.data) ? booksRes.data : [],
+    categories: Array.isArray(categories) ? categories : [],
+    userBooks,
+    popularBooks: Array.isArray(popularRes) ? popularRes : []
+  };
 };
 
 export const getBookById = async (id) => {

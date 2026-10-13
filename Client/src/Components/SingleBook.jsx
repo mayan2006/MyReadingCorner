@@ -11,7 +11,7 @@ import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
-import { getBookLikeState, toggleBookLike } from "../services/bookLikeApi";
+import { useBookLike } from "../hooks/useBookLike";
 import { addMarkedBook, deleteMarkedBook, getAllMarkedBook } from "../services/markedBookApi";
 import {
   addBookResponse,
@@ -44,12 +44,11 @@ const SingleBook = () => {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
   const currentUserCode = currentUser?.userCode || "";
+  const { likeCount, likedByMe, toggleLike } = useBookLike(bookCode);
 
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [likeCount, setLikeCount] = useState(0);
-  const [likedByMe, setLikedByMe] = useState(false);
   const [seriesChapters, setSeriesChapters] = useState([]);
   const [isFreeWritingBook, setIsFreeWritingBook] = useState(false);
   const [savedForLater, setSavedForLater] = useState(false);
@@ -58,15 +57,6 @@ const SingleBook = () => {
   const [responseText, setResponseText] = useState("");
   const [responseSubmitting, setResponseSubmitting] = useState(false);
   const [responseError, setResponseError] = useState("");
-
-  const refreshLikes = useCallback(async () => {
-    if (!bookCode) return;
-    const res = await getBookLikeState(bookCode);
-    if (res && typeof res.count === "number") {
-      setLikeCount(res.count);
-      setLikedByMe(Boolean(res.likedByUser));
-    }
-  }, [bookCode]);
 
   useEffect(() => {
     const fetchBook = async () => {
@@ -131,10 +121,6 @@ const SingleBook = () => {
 
     fetchBook();
   }, [bookCode]);
-
-  useEffect(() => {
-    refreshLikes();
-  }, [refreshLikes]);
 
   const fetchResponses = useCallback(async () => {
     if (!bookCode) return;
@@ -235,16 +221,9 @@ const SingleBook = () => {
     }
   };
 
-  const handleToggleLike = async () => {
-    const userCode = currentUserCode;
-    if (!userCode) return;
-    const res = await toggleBookLike(bookCode);
-    if (res && typeof res.count === "number" && typeof res.liked === "boolean") {
-      setLikeCount(res.count);
-      setLikedByMe(res.liked);
-    } else {
-      refreshLikes();
-    }
+  const handleToggleLike = () => {
+    if (!currentUserCode) return;
+    toggleLike();
   };
 
   const chapterIndex = isFreeWritingBook

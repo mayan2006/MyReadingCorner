@@ -1,24 +1,26 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { Box } from "@mui/material";
 import "./App.css";
 import { useSiteBackground } from "./context/SiteBackgroundContext.jsx";
 import { useAuth } from "./context/AuthContext.jsx";
 import { ProtectedRoute, ManagerRoute } from "./Components/ProtectedRoute.jsx";
-import SingleBook from "./Components/SingleBook";
-import BooksPage from "./Components/BooksPage";
 import Navbar from "./Components/Navbar";
 import BackToHomeBar from "./Components/BackToHomeBar";
-import SignUp from "./Components/SignUp";
-import Login from "./Components/Login";
-import ManagerSubjectApprovals from "./Components/ManagerSubjectApprovals";
-import FreeWriting from "./Components/FreeWriting";
-import Profile from "./Components/Profile";
-import MyBooks from "./Components/MyBooks";
-import LaterBooks from "./Components/LaterBooks";
-import FavoriteBooks from "./Components/FavoriteBooks";
-import AuthorProfile from "./Components/AuthorProfile";
 import SiteFooter from "./Components/SiteFooter";
+import PageFallback from "./Components/PageFallback.jsx";
+
+const BooksPage = lazy(() => import("./Components/BooksPage"));
+const SingleBook = lazy(() => import("./Components/SingleBook"));
+const AuthorProfile = lazy(() => import("./Components/AuthorProfile"));
+const FreeWriting = lazy(() => import("./Components/FreeWriting"));
+const Profile = lazy(() => import("./Components/Profile"));
+const MyBooks = lazy(() => import("./Components/MyBooks"));
+const LaterBooks = lazy(() => import("./Components/LaterBooks"));
+const FavoriteBooks = lazy(() => import("./Components/FavoriteBooks"));
+const SignUp = lazy(() => import("./Components/SignUp"));
+const Login = lazy(() => import("./Components/Login"));
+const ManagerSubjectApprovals = lazy(() => import("./Components/ManagerSubjectApprovals"));
 
 const NAV_HIDDEN_PATH_TESTERS = [
   /^\/books\/.+/,
@@ -35,7 +37,6 @@ function shouldHideNavbar(pathname) {
   return NAV_HIDDEN_PATH_TESTERS.some((re) => re.test(pathname));
 }
 
-/** גלילה לראש העמוד בכל מעבר בין נתיבים */
 function ScrollToTopOnRoute() {
   const { pathname } = useLocation();
   useEffect(() => {
@@ -69,6 +70,28 @@ function AppShell({
           : {})
       }}
     >
+      <Box
+        component="a"
+        href="#main-content"
+        sx={{
+          position: "absolute",
+          right: -9999,
+          "&:focus": {
+            right: 16,
+            top: 16,
+            zIndex: 4000,
+            px: 2,
+            py: 1,
+            bgcolor: "#fff",
+            color: "#1a2d4a",
+            fontWeight: 700,
+            borderRadius: 1,
+            boxShadow: 2
+          }
+        }}
+      >
+        דלג לתוכן הראשי
+      </Box>
       {!hideNavbar ? (
         <Navbar
           currentUser={currentUser}
@@ -80,70 +103,77 @@ function AppShell({
         <BackToHomeBar />
       )}
       <ScrollToTopOnRoute />
-      <Box component="main" sx={{ flex: "1 1 auto", width: "100%", maxWidth: "100%", overflowX: "hidden" }}>
-        <Routes>
-          <Route path="/" element={<BooksPage selectedCategory={selectedCategory} />} />
-          <Route path="/books/:bookCode" element={<SingleBook />} />
-          <Route path="/users/:userCode" element={<AuthorProfile />} />
-          <Route
-            path="/FreeWriting/edit/:writingCode"
-            element={
-              <ProtectedRoute>
-                <FreeWriting />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/FreeWriting"
-            element={
-              <ProtectedRoute>
-                <FreeWriting />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/Profile"
-            element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/my-books"
-            element={
-              <ProtectedRoute>
-                <MyBooks />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/later"
-            element={
-              <ProtectedRoute>
-                <LaterBooks />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/favorites"
-            element={
-              <ProtectedRoute>
-                <FavoriteBooks />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="/signup" element={<SignUp onLogin={handleLogin} />} />
-          <Route path="/login" element={<Login onLogin={handleLogin} />} />
-          <Route
-            path="/manager/subjects"
-            element={
-              <ManagerRoute>
-                <ManagerSubjectApprovals />
-              </ManagerRoute>
-            }
-          />
-        </Routes>
+      <Box
+        component="main"
+        id="main-content"
+        tabIndex={-1}
+        sx={{ flex: "1 1 auto", width: "100%", maxWidth: "100%", overflowX: "hidden", outline: "none" }}
+      >
+        <Suspense fallback={<PageFallback />}>
+          <Routes>
+            <Route path="/" element={<BooksPage selectedCategory={selectedCategory} />} />
+            <Route path="/books/:bookCode" element={<SingleBook />} />
+            <Route path="/users/:userCode" element={<AuthorProfile />} />
+            <Route
+              path="/FreeWriting/edit/:writingCode"
+              element={
+                <ProtectedRoute>
+                  <FreeWriting />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/FreeWriting"
+              element={
+                <ProtectedRoute>
+                  <FreeWriting />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/Profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/my-books"
+              element={
+                <ProtectedRoute>
+                  <MyBooks />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/later"
+              element={
+                <ProtectedRoute>
+                  <LaterBooks />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/favorites"
+              element={
+                <ProtectedRoute>
+                  <FavoriteBooks />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/signup" element={<SignUp onLogin={handleLogin} />} />
+            <Route path="/login" element={<Login onLogin={handleLogin} />} />
+            <Route
+              path="/manager/subjects"
+              element={
+                <ManagerRoute>
+                  <ManagerSubjectApprovals />
+                </ManagerRoute>
+              }
+            />
+          </Routes>
+        </Suspense>
       </Box>
       <SiteFooter />
     </Box>

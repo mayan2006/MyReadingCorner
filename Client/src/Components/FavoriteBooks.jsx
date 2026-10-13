@@ -1,48 +1,42 @@
-import { useCallback, useEffect, useState } from "react";
-import { Box, Typography, Alert, Container } from "@mui/material";
+import { Box, Typography, Alert, Container, CircularProgress } from "@mui/material";
+import { useQuery } from "@tanstack/react-query";
 import BookCard from "./BookCard";
 import { getMyLikedBooks } from "../services/bookLikeApi";
+import { queryKeys } from "../queryKeys";
 import { useAuth } from "../context/AuthContext.jsx";
 
 export default function FavoriteBooks() {
   const { currentUser } = useAuth();
   const currentUserCode = currentUser?.userCode || "";
-  const [books, setBooks] = useState([]);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
 
-  const loadBooks = useCallback(async () => {
-    if (!currentUserCode) {
-      setError("לא נמצא משתמש מחובר. התחבר/י כדי לראות את ספרים אהובים.");
-      setBooks([]);
-      setLoading(false);
-      return;
-    }
-    setError("");
-    try {
-      const data = await getMyLikedBooks();
-      if (Array.isArray(data)) {
-        setBooks(data);
-      } else if (data?.message) {
-        setError(typeof data.message === "string" ? data.message : "שגיאה בטעינת הרשימה");
-      } else {
-        setError("שגיאה בטעינת הרשימה");
+  const { data, isPending, isError, error } = useQuery({
+    queryKey: queryKeys.myLikedBooks,
+    queryFn: async () => {
+      const result = await getMyLikedBooks();
+      if (!Array.isArray(result)) {
+        throw new Error(result?.message || "שגיאה בטעינת הרשימה");
       }
-    } catch (e) {
-      setError(e?.message || "שגיאה בטעינת הרשימה");
-    } finally {
-      setLoading(false);
-    }
-  }, [currentUserCode]);
+      return result;
+    },
+    enabled: Boolean(currentUserCode)
+  });
 
-  useEffect(() => {
-    loadBooks();
-  }, [loadBooks]);
+  const books = data || [];
 
-  if (loading) {
+  if (!currentUserCode) {
     return (
       <Container maxWidth={false} sx={{ width: "100%", px: { xs: 2, md: 4 }, py: { xs: 3, md: 5 } }}>
-        <Typography>טוען ספרים אהובים...</Typography>
+        <Alert severity="warning">לא נמצא משתמש מחובר. התחבר/י כדי לראות את ספרים אהובים.</Alert>
+      </Container>
+    );
+  }
+
+  if (isPending) {
+    return (
+      <Container maxWidth={false} sx={{ width: "100%", px: { xs: 2, md: 4 }, py: { xs: 3, md: 5 } }}>
+        <Box sx={{ display: "flex", justifyContent: "center", py: 6 }} role="status">
+          <CircularProgress />
+        </Box>
       </Container>
     );
   }
@@ -106,13 +100,13 @@ export default function FavoriteBooks() {
         </Typography>
       </Box>
 
-      {error ? (
+      {isError ? (
         <Alert severity="error" sx={{ mb: 3 }}>
-          {error}
+          {error?.message || "שגיאה בטעינת הרשימה"}
         </Alert>
       ) : null}
 
-      {!error && books.length === 0 ? (
+      {!isError && books.length === 0 ? (
         <Alert severity="info">עדיין לא סימנת ספרים בלייק. לחצו על הלב בכרטיס הספר או בדף הקריאה.</Alert>
       ) : null}
 
@@ -133,7 +127,7 @@ export default function FavoriteBooks() {
       >
         {books.map((book) => (
           <Box key={book.bookCode} sx={{ minWidth: 0, width: "100%", maxWidth: "100%" }}>
-            <BookCard book={book} onLikeChange={loadBooks} />
+            <BookCard book={book} />
           </Box>
         ))}
       </Box>

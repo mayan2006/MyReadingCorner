@@ -1,58 +1,30 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useSearchParams, Link as RouterLink } from "react-router-dom";
-import axios from "axios";
-import { API_BASE_URL } from "../services/apiBase";
-import { getAllFreeWriting } from "../services/freeWritingApi";
-import { getPopularBooks } from "../services/booksApi";
-import { groupFreeWritingsBySeries, mapSeriesGroupToCatalogBook } from "../utils/freeWritingSeries";
-import { Box, Container, Typography, Alert, Button } from "@mui/material";
+import { useQuery } from "@tanstack/react-query";
+import { fetchCatalogPage } from "../services/booksApi";
+import { queryKeys } from "../queryKeys";
+import { Box, Container, Typography, Alert, Button, CircularProgress } from "@mui/material";
 import ThreeBookCarousels, { GoldDivider } from "./ThreeBookCarousels";
 import BookCarouselSection from "./BookCarouselSection";
 
 const normalize = (value = "") => value.toString().trim().toLowerCase();
 const USER_BOOKS_CATEGORY_NAME = "ספרי משתמשים";
-const USER_BOOKS_FALLBACK_IMAGE =
-  "https://placehold.co/600x800?text=User+Book";
 
 const BooksPage = ({ selectedCategory }) => {
   const [searchParams] = useSearchParams();
   const subjectCodeFilter = (searchParams.get("subject") || "").trim();
   const subjectLabelParam = (searchParams.get("subjectLabel") || "").trim();
-
-  const [books, setBooks] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [userBooks, setUserBooks] = useState([]);
-  const [popularBooks, setPopularBooks] = useState([]);
   const skipCategoryScrollOnce = useRef(true);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [booksRes, categoriesRes, freeWritingRes, popularRes] = await Promise.all([
-          axios.get(`${API_BASE_URL}/books`),
-          axios.get(`${API_BASE_URL}/category`),
-          getAllFreeWriting(),
-          getPopularBooks(8).catch(() => [])
-        ]);
+  const { data, isPending, isError } = useQuery({
+    queryKey: queryKeys.catalog,
+    queryFn: fetchCatalogPage
+  });
 
-        setBooks(booksRes.data || []);
-        setCategories(categoriesRes.data || []);
-
-        const freeWritingRecords = Array.isArray(freeWritingRes) ? freeWritingRes : [];
-        const groups = groupFreeWritingsBySeries(freeWritingRecords);
-        const mappedUserBooks = groups.map((g) =>
-          mapSeriesGroupToCatalogBook(g, USER_BOOKS_FALLBACK_IMAGE)
-        );
-
-        setUserBooks(mappedUserBooks);
-        setPopularBooks(Array.isArray(popularRes) ? popularRes : []);
-      } catch (error) {
-        console.error("Failed to fetch data:", error);
-      }
-    };
-
-    fetchData();
-  }, []);
+  const books = data?.books || [];
+  const categories = data?.categories || [];
+  const userBooks = data?.userBooks || [];
+  const popularBooks = data?.popularBooks || [];
 
   /** גלילה לראש בעת החלפת קטגוריה מה־Navbar (באותו נתיב / בלי לשנות URL) */
   useEffect(() => {
@@ -102,6 +74,24 @@ const BooksPage = ({ selectedCategory }) => {
     if (selectedCategory === "all") return "אין ספרים בקטלוג כרגע.";
     return "אין ספרים להצגה בקטגוריה זו.";
   }, [subjectCodeFilter, selectedCategory]);
+
+  if (isPending) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", py: 10 }} role="status">
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (isError) {
+    return (
+      <Container sx={{ py: 5 }}>
+        <Alert severity="error" sx={{ direction: "rtl", textAlign: "right" }}>
+          לא הצלחנו לטעון את הקטלוג. נסי לרענן את העמוד.
+        </Alert>
+      </Container>
+    );
+  }
 
   return (
     <Container maxWidth={false} sx={{ width: "100%", maxWidth: "100%", overflowX: "hidden", px: { xs: 2, md: 4 }, py: { xs: 3, md: 5 }, boxSizing: "border-box" }}>

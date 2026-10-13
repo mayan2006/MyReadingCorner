@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { Box, Typography, IconButton, Tooltip, Chip } from "@mui/material";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
@@ -13,7 +13,7 @@ import {
   getAllMarkedBook,
   deleteMarkedBook
 } from "../services/markedBookApi";
-import { getBookLikeState, toggleBookLike } from "../services/bookLikeApi";
+import { useBookLike } from "../hooks/useBookLike";
 import {
   laterMarkedBookCode,
   laterSeriesWritingCodes
@@ -25,22 +25,10 @@ const BookCard = ({ book, onDelete, onLikeChange, onEdit }) => {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
   const [isSavedForLater, setIsSavedForLater] = useState(false);
-  const [likeCount, setLikeCount] = useState(0);
-  const [likedByMe, setLikedByMe] = useState(false);
+  const { likeCount, likedByMe, toggleLike, currentUserCode } = useBookLike(book?.bookCode);
 
   const rawCover = book?.imageUrl || book?.img || "";
   const coverSrc = rawCover ? resolveMediaUrl(rawCover) : "";
-
-  const currentUserCode = currentUser?.userCode || "";
-
-  const refreshLikes = useCallback(async () => {
-    if (!book?.bookCode) return;
-    const res = await getBookLikeState(book.bookCode);
-    if (res && typeof res.count === "number") {
-      setLikeCount(res.count);
-      setLikedByMe(Boolean(res.likedByUser));
-    }
-  }, [book?.bookCode, currentUserCode]);
 
   useEffect(() => {
     const checkSaved = async () => {
@@ -63,10 +51,6 @@ const BookCard = ({ book, onDelete, onLikeChange, onEdit }) => {
     };
     checkSaved();
   }, [book?.bookCode, book?.seriesWritingCodes, currentUserCode]);
-
-  useEffect(() => {
-    refreshLikes();
-  }, [refreshLikes]);
 
   const handleSaveForLater = async (e) => {
     e.preventDefault();
@@ -106,15 +90,9 @@ const BookCard = ({ book, onDelete, onLikeChange, onEdit }) => {
     e.preventDefault();
     e.stopPropagation();
     if (!currentUserCode) return;
-    const res = await toggleBookLike(book.bookCode);
-    if (res && typeof res.count === "number" && typeof res.liked === "boolean") {
-      setLikeCount(res.count);
-      setLikedByMe(res.liked);
-      if (typeof onLikeChange === "function") {
-        onLikeChange();
-      }
-    } else {
-      refreshLikes();
+    toggleLike();
+    if (typeof onLikeChange === "function") {
+      onLikeChange();
     }
   };
 
@@ -339,7 +317,7 @@ const BookCard = ({ book, onDelete, onLikeChange, onEdit }) => {
               <IconButton
                 onClick={handleDeleteClick}
                 size="small"
-                aria-label="delete my book"
+                aria-label="מחיקת הספר"
                 sx={{
                   color: "#a04848",
                   "&:hover": { backgroundColor: "rgba(160,72,72,0.1)" }
@@ -360,7 +338,7 @@ const BookCard = ({ book, onDelete, onLikeChange, onEdit }) => {
                   onEdit(book);
                 }}
                 size="small"
-                aria-label="continue editing"
+                aria-label="המשך עריכה"
                 sx={{
                   color: "#1f5d99",
                   "&:hover": { backgroundColor: "rgba(31,93,153,0.1)" }

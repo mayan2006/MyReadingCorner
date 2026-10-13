@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { describe, expect, it, vi } from "vitest";
 import BookCard from "./BookCard.jsx";
 
@@ -25,9 +26,12 @@ vi.mock("../services/apiBase", () => ({
   resolveMediaUrl: (url) => url || ""
 }));
 
-describe("BookCard", () => {
-  it("renders the book title", () => {
-    render(
+function renderCard() {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false } }
+  });
+  return render(
+    <QueryClientProvider client={client}>
       <MemoryRouter>
         <BookCard
           book={{
@@ -38,8 +42,13 @@ describe("BookCard", () => {
           }}
         />
       </MemoryRouter>
-    );
+    </QueryClientProvider>
+  );
+}
 
+describe("BookCard", () => {
+  it("renders the book title", () => {
+    renderCard();
     expect(screen.getByText("הספר של הבדיקות")).toBeInTheDocument();
   });
 });
