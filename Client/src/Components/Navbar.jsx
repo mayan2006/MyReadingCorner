@@ -227,7 +227,9 @@ export default function Navbar({ currentUser, onLogout, selectedCategory, onCate
       }}
     >
       <Toolbar
+        dir="ltr"
         sx={{
+          direction: "ltr",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
@@ -610,9 +612,11 @@ export default function Navbar({ currentUser, onLogout, selectedCategory, onCate
           </SearchWrap>
         </Box>
 
-        {/* Right: logo + site name */}
+        {/* Right: logo + site name (ltr so html dir=rtl does not flip them left) */}
         <Box
+          dir="ltr"
           sx={{
+            direction: "ltr",
             display: "flex",
             alignItems: "center",
             gap: 1.75,
