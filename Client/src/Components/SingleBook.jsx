@@ -35,6 +35,7 @@ import {
 import ChatBubbleOutlineRoundedIcon from "@mui/icons-material/ChatBubbleOutlineRounded";
 import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 import { useAuth } from "../context/AuthContext.jsx";
+import { promptLoginRequired } from "../utils/promptLoginRequired";
 
 /** עברית במידה ויש בתוכן תו מאותיות העברית */
 const textContainsHebrew = (value) => typeof value === "string" && /[\u0590-\u05FF]/.test(value);
@@ -163,7 +164,11 @@ const SingleBook = () => {
 
   const handleToggleSaveLater = async () => {
     const userCode = currentUserCode;
-    if (!userCode || !isFreeWritingBook || !seriesChapters.length) return;
+    if (!userCode) {
+      await promptLoginRequired(navigate, "התחברו כדי לשמור לקריאה בהמשך");
+      return;
+    }
+    if (!isFreeWritingBook || !seriesChapters.length) return;
     const codes = seriesChapters.map((c) => c.writingCode);
     if (savedForLater) {
       for (const code of codes) {
@@ -221,8 +226,11 @@ const SingleBook = () => {
     }
   };
 
-  const handleToggleLike = () => {
-    if (!currentUserCode) return;
+  const handleToggleLike = async () => {
+    if (!currentUserCode) {
+      await promptLoginRequired(navigate, "התחברו כדי לסמן לייק");
+      return;
+    }
     toggleLike();
   };
 
@@ -383,6 +391,7 @@ const SingleBook = () => {
             {isFreeWritingBook && seriesChapters.length > 0 ? (
               <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 0.25 }}>
                 <Tooltip
+                  disableTouchListener
                   title={
                     !userCode
                       ? "התחברו כדי לשמור"
@@ -394,8 +403,13 @@ const SingleBook = () => {
                   <span>
                     <IconButton
                       onClick={handleToggleSaveLater}
-                      disabled={!userCode}
-                      aria-label={savedForLater ? "הסר מלקריאה בהמשך" : "שמור לקריאה בהמשך"}
+                      aria-label={
+                        !userCode
+                          ? "התחברו כדי לשמור לקריאה בהמשך"
+                          : savedForLater
+                            ? "הסר מלקריאה בהמשך"
+                            : "שמור לקריאה בהמשך"
+                      }
                       sx={{ color: savedForLater ? "#1f5d99" : "#7a8aa3" }}
                     >
                       {savedForLater ? <BookmarkIcon fontSize="large" /> : <BookmarkBorderIcon fontSize="large" />}
@@ -408,12 +422,16 @@ const SingleBook = () => {
               </Box>
             ) : null}
             <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 0.25 }}>
-              <Tooltip title={!userCode ? "התחברו כדי לסמן אהבה" : likedByMe ? "הסרת אהבה" : "אהבתי"}>
+              <Tooltip
+                disableTouchListener
+                title={!userCode ? "התחברו כדי לסמן לייק" : likedByMe ? "הסרת אהבה" : "אהבתי"}
+              >
                 <span>
                   <IconButton
                     onClick={handleToggleLike}
-                    disabled={!userCode}
-                    aria-label={likedByMe ? "הסר אהבה" : "אהבתי"}
+                    aria-label={
+                      !userCode ? "התחברו כדי לסמן לייק" : likedByMe ? "הסר אהבה" : "אהבתי"
+                    }
                     sx={{ color: likedByMe ? "#e53935" : "#7a8aa3" }}
                   >
                     {likedByMe ? <FavoriteIcon fontSize="large" /> : <FavoriteBorderIcon fontSize="large" />}

@@ -20,6 +20,7 @@ import {
 } from "../utils/freeWritingSeries";
 import { resolveMediaUrl } from "../services/apiBase";
 import { useAuth } from "../context/AuthContext.jsx";
+import { promptLoginRequired } from "../utils/promptLoginRequired";
 
 const BookCard = ({ book, onDelete, onLikeChange, onEdit }) => {
   const navigate = useNavigate();
@@ -55,7 +56,10 @@ const BookCard = ({ book, onDelete, onLikeChange, onEdit }) => {
   const handleSaveForLater = async (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!currentUserCode) return;
+    if (!currentUserCode) {
+      await promptLoginRequired(navigate, "התחברו כדי לשמור לקריאה בהמשך");
+      return;
+    }
 
     if (isSavedForLater) {
       try {
@@ -89,7 +93,10 @@ const BookCard = ({ book, onDelete, onLikeChange, onEdit }) => {
   const handleLikeClick = async (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!currentUserCode) return;
+    if (!currentUserCode) {
+      await promptLoginRequired(navigate, "התחברו כדי לסמן לייק");
+      return;
+    }
     toggleLike();
     if (typeof onLikeChange === "function") {
       onLikeChange();
@@ -272,16 +279,22 @@ const BookCard = ({ book, onDelete, onLikeChange, onEdit }) => {
         }}
       >
         <Tooltip
+          disableTouchListener
           title={
-            !currentUserCode ? "התחברו כדי לסמן אהבה" : likedByMe ? "בטל לייק" : "אהבתי"
+            !currentUserCode ? "התחברו כדי לסמן לייק" : likedByMe ? "בטל לייק" : "אהבתי"
           }
         >
           <span>
             <IconButton
               onClick={handleLikeClick}
-              disabled={!currentUserCode}
               size="small"
-              aria-label={likedByMe ? "הסר אהבה" : "אהבתי"}
+              aria-label={
+                !currentUserCode
+                  ? "התחברו כדי לסמן לייק"
+                  : likedByMe
+                    ? "הסר אהבה"
+                    : "אהבתי"
+              }
               sx={{
                 color: likedByMe ? "#d4326a" : "#a67c32",
                 transition: "transform .2s",
@@ -349,6 +362,7 @@ const BookCard = ({ book, onDelete, onLikeChange, onEdit }) => {
             </Tooltip>
           ) : null}
           <Tooltip
+            disableTouchListener
             title={
               !currentUserCode
                 ? "התחברו כדי לשמור לקריאה בהמשך"
@@ -360,9 +374,14 @@ const BookCard = ({ book, onDelete, onLikeChange, onEdit }) => {
             <span>
               <IconButton
                 onClick={handleSaveForLater}
-                disabled={!currentUserCode}
                 size="small"
-                aria-label={isSavedForLater ? "הסר מלקריאה בהמשך" : "שמור לקריאה בהמשך"}
+                aria-label={
+                  !currentUserCode
+                    ? "התחברו כדי לשמור לקריאה בהמשך"
+                    : isSavedForLater
+                      ? "הסר מלקריאה בהמשך"
+                      : "שמור לקריאה בהמשך"
+                }
                 sx={{
                   color: isSavedForLater ? "#a67c32" : "#8b6914",
                   transition: "transform .2s",

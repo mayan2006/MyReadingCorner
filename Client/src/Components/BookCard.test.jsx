@@ -1,12 +1,17 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import BookCard from "./BookCard.jsx";
+
+const authState = vi.hoisted(() => ({
+  currentUser: { userCode: "U1", role: "user" }
+}));
 
 vi.mock("../context/AuthContext.jsx", () => ({
   useAuth: () => ({
-    currentUser: { userCode: "U1", role: "user" },
+    currentUser: authState.currentUser,
     authReady: true
   })
 }));
@@ -47,8 +52,24 @@ function renderCard() {
 }
 
 describe("BookCard", () => {
+  afterEach(() => {
+    authState.currentUser = { userCode: "U1", role: "user" };
+    delete globalThis.Swal;
+  });
+
   it("renders the book title", () => {
     renderCard();
     expect(screen.getByText("הספר של הבדיקות")).toBeInTheDocument();
+  });
+
+  it("asks a guest to log in when tapping like", async () => {
+    authState.currentUser = null;
+    const fire = vi.fn().mockResolvedValue({ isConfirmed: false });
+    globalThis.Swal = { fire };
+    const user = userEvent.setup();
+    renderCard();
+    await user.click(screen.getByRole("button", { name: "התחברו כדי לסמן לייק" }));
+    expect(fire).toHaveBeenCalled();
+    expect(fire.mock.calls[0][0].title).toBe("התחברו כדי לסמן לייק");
   });
 });
