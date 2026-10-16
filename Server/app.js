@@ -21,7 +21,15 @@ const allowedOrigins = [
 app.set('trust proxy', 1);
 app.use(
   helmet({
-    crossOriginResourcePolicy: { policy: 'cross-origin' }
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    contentSecurityPolicy: {
+      useDefaults: true,
+      directives: {
+        "script-src": ["'self'", "'unsafe-inline'"],
+        "style-src": ["'self'", "'unsafe-inline'"],
+        "img-src": ["'self'", "data:", "https:"]
+      }
+    }
   })
 );
 app.use(express.json({ limit: '1mb' }));
@@ -61,6 +69,9 @@ const bookLikeRouter = require('./Routes/BookLikeRouter');
 app.use('/bookLike', bookLikeRouter);
 const bookResponseRouter = require('./Routes/BookResponseRouter');
 app.use('/bookResponse', bookResponseRouter);
+
+const { mountSwagger } = require('./docs/swagger');
+mountSwagger(app);
 
 app.use(errorHandler);
 
