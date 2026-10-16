@@ -1,10 +1,13 @@
 import axios from "axios";
 
 const envUrl = (import.meta.env.VITE_API_BASE_URL || "").trim().replace(/\/$/, "");
+const DEFAULT_PROD_API = "https://myreadingcornerserver.onrender.com";
 
-/** In production the app talks to `/api` on the same origin so iPhone Safari
- *  will store auth cookies (onrender.com frontend + API are cross-site). */
-export const API_BASE_URL = import.meta.env.PROD ? "/api" : envUrl || "/api";
+/** Local: Vite `/api` proxy, or VITE_API_BASE_URL if it is a full URL.
+ *  Production: the real API host. Render static `_redirects` cannot proxy `/api`. */
+export const API_BASE_URL = import.meta.env.PROD
+  ? (envUrl.startsWith("http") ? envUrl : DEFAULT_PROD_API)
+  : (envUrl.startsWith("http") ? envUrl : "/api");
 
 const ACCESS_TOKEN_KEY = "mrcAccessToken";
 
