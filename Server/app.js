@@ -3,8 +3,10 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
 const path = require('path');
+const pinoHttp = require('pino-http');
 const { sanitizeRequest } = require('./middleware/sanitize');
 const { errorHandler } = require('./middleware/errorHandler');
+const logger = require('./utils/logger');
 
 const app = express();
 
@@ -19,6 +21,15 @@ const allowedOrigins = [
 ];
 
 app.set('trust proxy', 1);
+app.use(
+  pinoHttp({
+    logger,
+    autoLogging: process.env.NODE_ENV !== 'test'
+  })
+);
+app.get('/health', (_req, res) => {
+  res.status(200).send({ ok: true });
+});
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: 'cross-origin' },

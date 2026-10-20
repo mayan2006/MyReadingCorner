@@ -1,3 +1,5 @@
+const logger = require("../utils/logger");
+
 const errorHandler = (err, req, res, next) => {
   if (res.headersSent) {
     return next(err);
@@ -37,7 +39,7 @@ const errorHandler = (err, req, res, next) => {
   const statusCode = err.statusCode || err.status || 500;
   const isServerError = statusCode >= 500;
   if (isServerError) {
-    console.error(err);
+    logger.error({ err }, err.message || "server error");
   }
 
   const message = isServerError && process.env.NODE_ENV === "production"

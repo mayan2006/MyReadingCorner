@@ -1,0 +1,37 @@
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  api:
+    build:
+      context: ./Server
+    ports:
+      - "5000:5000"
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      MONGODB_URI: mongodb://mongo:27017/mySiteDB
+      JWT_ACCESS_SECRET: docker-dev-access-change-me
+      JWT_REFRESH_SECRET: docker-dev-refresh-change-me
+      CLIENT_URL: http://localhost:5173
+    depends_on:
+      - mongo
+
+  seed:
+    build:
+      context: ./Server
+    command: node scripts/seed.js
+    environment:
+      NODE_ENV: production
+      MONGODB_URI: mongodb://mongo:27017/mySiteDB
+    depends_on:
+      - mongo
+    profiles: ["seed"]
+
+volumes:
+  mongo_data:
