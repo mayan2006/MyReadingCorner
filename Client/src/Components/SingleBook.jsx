@@ -35,6 +35,7 @@ import {
 import ChatBubbleOutlineRoundedIcon from "@mui/icons-material/ChatBubbleOutlineRounded";
 import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 import { useAuth } from "../context/AuthContext.jsx";
+import { useSocket } from "../context/SocketContext.jsx";
 import { promptLoginRequired } from "../utils/promptLoginRequired";
 
 /** עברית במידה ויש בתוכן תו מאותיות העברית */
@@ -46,6 +47,7 @@ const SingleBook = () => {
   const { currentUser } = useAuth();
   const currentUserCode = currentUser?.userCode || "";
   const { likeCount, likedByMe, toggleLike } = useBookLike(bookCode);
+  const socket = useSocket();
 
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -135,6 +137,28 @@ const SingleBook = () => {
     if (!bookCode || loading) return;
     fetchResponses();
   }, [bookCode, loading, fetchResponses]);
+
+  useEffect(() => {
+    if (!socket || !bookCode) return undefined;
+    const onAdded = (payload) => {
+      if (payload?.bookCode !== bookCode || !payload.response?._id) return;
+      const incomingId = String(payload.response._id);
+      setResponses((prev) => {
+        if (prev.some((item) => String(item._id) === incomingId)) return prev;
+        return [payload.response, ...prev];
+      });
+    };
+    const onDeleted = (payload) => {
+      if (payload?.bookCode !== bookCode || !payload.id) return;
+      setResponses((prev) => prev.filter((item) => String(item._id) !== String(payload.id)));
+    };
+    socket.on("responseAdded", onAdded);
+    socket.on("responseDeleted", onDeleted);
+    return () => {
+      socket.off("responseAdded", onAdded);
+      socket.off("responseDeleted", onDeleted);
+    };
+  }, [socket, bookCode]);
 
   useEffect(() => {
     const userCode = currentUserCode;

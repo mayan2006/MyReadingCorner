@@ -5,6 +5,7 @@ import "./index.css";
 import App from "./App.jsx";
 import { SiteBackgroundProvider } from "./context/SiteBackgroundContext.jsx";
 import { AuthProvider } from "./context/AuthContext.jsx";
+import { SocketProvider } from "./context/SocketContext.jsx";
 import ErrorBoundary from "./Components/ErrorBoundary.jsx";
 
 const queryClient = new QueryClient({
@@ -23,7 +24,9 @@ createRoot(document.getElementById("root")).render(
       <QueryClientProvider client={queryClient}>
         <SiteBackgroundProvider>
           <AuthProvider>
-            <App />
+            <SocketProvider>
+              <App />
+            </SocketProvider>
           </AuthProvider>
         </SiteBackgroundProvider>
       </QueryClientProvider>

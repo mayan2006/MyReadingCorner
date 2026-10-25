@@ -7,7 +7,9 @@ const openapiSpec = {
     description:
       "ספרייה דיגיטלית: קטלוג, כתיבה חופשית, לייקים והתחברות.\n\n" +
       "**אימות:** `POST /user/login` מחזיר `accessToken` וגם עוגיות httpOnly. " +
-      "ב־Authorize הדביקו את הטוקן כ־Bearer, או השתמשו בעוגייה `accessToken`."
+      "ב־Authorize הדביקו את הטוקן כ־Bearer, או השתמשו בעוגייה `accessToken`.\n\n" +
+      "**זמן אמת:** Socket.io על אותו שרת. הלקוח שולח `joinBook` / `leaveBook`; " +
+      "השרת משדר `likeUpdated`, `responseAdded`, `responseDeleted` לחדר `book:<bookCode>`."
   },
   servers: [
     { url: "http://localhost:5000", description: "פיתוח מקומי" },

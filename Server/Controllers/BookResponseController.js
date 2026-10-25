@@ -4,6 +4,7 @@ const FreeWriting = require("../Models/FreeWritingModel");
 const User = require("../Models/UserModel");
 const AppError = require("../utils/AppError");
 const { wrapAsync } = require("../middleware/asyncHandler");
+const { emitToBook } = require("../realtime/socket");
 
 const bookExists = async (bookCode) => {
   const code = (bookCode || "").trim();
@@ -53,8 +54,10 @@ const addResponse = async (req, res) => {
     authorName,
     content
   });
+  const response = doc.toObject();
+  emitToBook(bookCode, "responseAdded", { bookCode, response });
 
-  res.status(200).send({ message: "response added", response: doc });
+  res.status(200).send({ message: "response added", response });
 };
 
 const deleteResponse = async (req, res) => {
@@ -69,7 +72,9 @@ const deleteResponse = async (req, res) => {
     throw new AppError(403, "Forbidden");
   }
 
+  const bookCode = doc.bookCode;
   await BookResponse.deleteOne({ _id: id });
+  emitToBook(bookCode, "responseDeleted", { bookCode, id: String(doc._id) });
   res.status(200).send({ message: "response deleted" });
 };
 

@@ -7,18 +7,9 @@ const pinoHttp = require('pino-http');
 const { sanitizeRequest } = require('./middleware/sanitize');
 const { errorHandler } = require('./middleware/errorHandler');
 const logger = require('./utils/logger');
+const { isAllowedOrigin } = require('./config/corsOrigins');
 
 const app = express();
-
-const allowedOrigins = [
-  'http://localhost:5173',
-  'http://localhost:4173',
-  'https://myreadingcorner-1.onrender.com',
-  ...(process.env.CLIENT_URL || '')
-    .split(',')
-    .map((url) => url.trim())
-    .filter(Boolean),
-];
 
 app.set('trust proxy', 1);
 app.use(
@@ -49,7 +40,7 @@ app.use(sanitizeRequest);
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (isAllowedOrigin(origin)) {
         callback(null, true);
       } else {
         callback(null, false);

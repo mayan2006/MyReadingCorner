@@ -3,6 +3,7 @@ const Book = require("../Models/BookModel");
 const FreeWriting = require("../Models/FreeWritingModel");
 const User = require("../Models/UserModel");
 const { wrapAsync } = require("../middleware/asyncHandler");
+const { emitToBook } = require("../realtime/socket");
 
 const USER_BOOK_CARD_IMG = "https://placehold.co/600x800?text=User+Book";
 
@@ -27,6 +28,7 @@ const toggleBookLike = async (req, res) => {
     }
     const liked = !existing;
     const count = await BookLike.countDocuments({ bookCode });
+    emitToBook(bookCode, "likeUpdated", { bookCode, count, userCode, liked });
     res.status(200).send({ message: "ok", liked, count });
 };
 
