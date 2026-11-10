@@ -38,7 +38,10 @@ export default function Profile() {
     },
     { title: "לקריאה בהמשך", path: "/later", icon: <BookmarkRoundedIcon />, hue: "#f0a73a", desc: "רשימת הקריאה שלך" },
     ...(currentUser?.role === "manager"
-      ? [{ title: "אישור נושאים (מנהל)", path: "/manager/subjects", icon: <VerifiedRoundedIcon />, hue: "#1f5d99", desc: "ניהול נושאים חדשים" }]
+      ? [
+          { title: "אישור נושאים (מנהל)", path: "/manager/subjects", icon: <VerifiedRoundedIcon />, hue: "#1f5d99", desc: "ניהול נושאים חדשים" },
+          { title: "אישור ספרים מיובאים", path: "/manager/books", icon: <MenuBookRoundedIcon />, hue: "#3a5a8a", desc: "שיבוץ קטגוריה ליצירות מפרויקט בן־יהודה" }
+        ]
       : [])
   ];
 

@@ -364,7 +364,12 @@ const SingleBook = () => {
               )}
             </Typography>
           ) : null}
-          
+          {book.sourceCredit ? (
+            <Typography variant="caption" sx={{ display: "block", color: "#8b9bb0", mb: 2, textAlign: "center" }}>
+              {book.sourceCredit}
+            </Typography>
+          ) : null}
+
           <Box
             component="article"
             dir={bodyIsHebrew ? "rtl" : "ltr"}

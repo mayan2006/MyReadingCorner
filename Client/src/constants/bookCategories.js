@@ -7,6 +7,11 @@ export const BOOK_CATEGORIES = [
   "ספרי משתמשים"
 ];
 
+/** קטגוריות שאפשר לשייך ליצירה מיובאת מפרויקט בן־יהודה */
+export const IMPORT_ASSIGN_CATEGORIES = BOOK_CATEGORIES.filter(
+  (name) => name !== "ספרי משתמשים"
+);
+
 export const NAV_CATEGORY_TABS = ["all", ...BOOK_CATEGORIES];
 
 /** קטגוריה ברירת מחדל לנושא חדש מכתיבה חופשית (מוצג ב-Navbar בלי צורך בעריכת DB) */

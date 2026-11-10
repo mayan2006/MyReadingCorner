@@ -82,6 +82,12 @@ const approveSubjectSchema = z.object({
   })
 });
 
+const approveImportedBookSchema = z.object({
+  body: z.object({
+    categoryCode: z.string().trim().min(1, "חובה לבחור קטגוריה לפני האישור")
+  })
+});
+
 module.exports = {
   toggleLikeSchema,
   upsertRatingSchema,
@@ -91,5 +97,6 @@ module.exports = {
   updateFreeWritingSchema,
   uploadCoverSchema,
   createSubjectRequestSchema,
-  approveSubjectSchema
+  approveSubjectSchema,
+  approveImportedBookSchema
 };

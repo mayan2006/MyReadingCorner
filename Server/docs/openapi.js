@@ -222,6 +222,32 @@ const openapiSpec = {
         responses: { 200: { description: "רשימה ממוינת" } }
       }
     },
+    "/books/import/pending": {
+      get: {
+        tags: ["Books"],
+        summary: "ספרים מיובאים שממתינים לשיבוץ קטגוריה (מנהל)",
+        security: [{ bearerAuth: [] }, { cookieAuth: [] }],
+        responses: { 200: { description: "רשימת pending בלי תוכן מלא" }, 403: { description: "אין הרשאה" } }
+      }
+    },
+    "/books/import/{bookCode}/approve": {
+      post: {
+        tags: ["Books"],
+        summary: "אישור ספר מיובא ושיבוץ קטגוריה",
+        security: [{ bearerAuth: [] }, { cookieAuth: [] }],
+        parameters: [{ name: "bookCode", in: "path", required: true, schema: { type: "string" } }],
+        responses: { 200: { description: "הספר אושר" }, 400: { description: "קטגוריה לא חוקית" }, 403: { description: "אין הרשאה" } }
+      }
+    },
+    "/books/import/{bookCode}/reject": {
+      post: {
+        tags: ["Books"],
+        summary: "דחיית ספר מיובא (לא יחזור בייבוא חוזר)",
+        security: [{ bearerAuth: [] }, { cookieAuth: [] }],
+        parameters: [{ name: "bookCode", in: "path", required: true, schema: { type: "string" } }],
+        responses: { 200: { description: "הספר נדחה" }, 403: { description: "אין הרשאה" } }
+      }
+    },
     "/books/code/{bookCode}": {
       get: {
         tags: ["Books"],

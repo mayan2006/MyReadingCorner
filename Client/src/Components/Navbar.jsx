@@ -26,7 +26,8 @@ import {
   PersonAddAltRounded,
   PersonRounded,
   LogoutRounded,
-  AssignmentTurnedInRounded
+  AssignmentTurnedInRounded,
+  MenuBookRounded
 } from "@mui/icons-material";
 import { styled } from "@mui/material/styles";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -208,6 +209,7 @@ export default function Navbar({ currentUser, onLogout, selectedCategory, onCate
   const goToSignUp = () => { handleMenuClose(); navigate("/signup"); };
   const goToLogin = () => { handleMenuClose(); navigate("/login"); };
   const goToManagerSubjects = () => { handleMenuClose(); navigate("/manager/subjects"); };
+  const goToManagerBooks = () => { handleMenuClose(); navigate("/manager/books"); };
   const handleProfile = () => { handleMenuClose(); navigate("/Profile"); };
   const handleLogoutClick = () => { handleMenuClose(); onLogout(); navigate("/"); };
 
@@ -466,6 +468,21 @@ export default function Navbar({ currentUser, onLogout, selectedCategory, onCate
                       </ListItemIcon>
                       <ListItemText
                         primary="אישור נושאים"
+                        primaryTypographyProps={{
+                          fontFamily: '"Heebo", sans-serif',
+                          fontWeight: 700,
+                          fontSize: "0.95rem"
+                        }}
+                      />
+                    </MenuItem>
+                  )}
+                  {currentUser?.role === "manager" && (
+                    <MenuItem onClick={goToManagerBooks}>
+                      <ListItemIcon>
+                        <MenuBookRounded sx={{ fontSize: 22 }} />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary="אישור ספרים מיובאים"
                         primaryTypographyProps={{
                           fontFamily: '"Heebo", sans-serif',
                           fontWeight: 700,

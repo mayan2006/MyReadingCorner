@@ -2,10 +2,31 @@ const express = require("express");
 const BookController = require("../Controllers/BookController");
 const { authenticate } = require("../middleware/authenticate");
 const { authorize } = require("../middleware/authorize");
+const { validate } = require("../middleware/validate");
+const { approveImportedBookSchema } = require("../validators/actionSchemas");
 
 const BookRouter = express.Router();
 
 BookRouter.get("/popular", BookController.getPopularBooks);
+BookRouter.get(
+  "/import/pending",
+  authenticate,
+  authorize("manager"),
+  BookController.getPendingImportedBooks
+);
+BookRouter.post(
+  "/import/:bookCode/approve",
+  authenticate,
+  authorize("manager"),
+  validate(approveImportedBookSchema),
+  BookController.approveImportedBook
+);
+BookRouter.post(
+  "/import/:bookCode/reject",
+  authenticate,
+  authorize("manager"),
+  BookController.rejectImportedBook
+);
 BookRouter.get("/code/:bookCode", BookController.getBookByCode);
 BookRouter.get("/:id", BookController.getBookById);
 BookRouter.get("/", BookController.getAllBooks);

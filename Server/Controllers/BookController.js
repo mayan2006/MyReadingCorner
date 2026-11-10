@@ -2,6 +2,12 @@ const Book = require("../Models/BookModel");
 const FreeWriting = require("../Models/FreeWritingModel");
 const AppError = require("../utils/AppError");
 const { wrapAsync } = require("../middleware/asyncHandler");
+const {
+    publicBookFilter,
+    isPublicBook,
+    isAssignableCategory,
+    IMPORT_STATUSES
+} = require("../utils/catalogVisibility");
 
 const USER_BOOK_CARD_IMG = "https://placehold.co/600x800?text=User+Book";
 
@@ -56,13 +62,13 @@ const getAllBooks = async (req, res) => {
         q.length > 0 || req.query.page != null || req.query.limit != null;
 
     if (!wantsPagination) {
-        const allBooks = await Book.find().lean();
+        const allBooks = await Book.find(publicBookFilter()).lean();
         return res.status(200).send(allBooks);
     }
 
     const page = parsePage(req.query.page);
     const limit = parseLimit(req.query.limit, q ? 7 : 12);
-    const filter = {};
+    const filter = publicBookFilter();
 
     if (q) {
         const regex = new RegExp(escapeRegex(q), "i");
@@ -89,6 +95,7 @@ const getPopularBooks = async (req, res) => {
     const limit = parseLimit(req.query.limit, 12);
 
     const popular = await Book.aggregate([
+        { $match: publicBookFilter() },
         {
             $lookup: {
                 from: "booklikes",
@@ -127,16 +134,63 @@ const getPopularBooks = async (req, res) => {
 
 const getBookById = async (req, res) => {
     const book = await Book.findById(req.params.id);
+    if (!book || !isPublicBook(book)) {
+        throw new AppError(404, "Book not found");
+    }
     res.status(200).send(book);
 };
 
 const getBookByCode = async (req, res) => {
     const { bookCode } = req.params;
     const book = await Book.findOne({ bookCode });
-    if (!book) {
+    if (!book || !isPublicBook(book)) {
         throw new AppError(404, "Book not found");
     }
     res.json(book);
+};
+
+const getPendingImportedBooks = async (req, res) => {
+    const pending = await Book.find({ importStatus: IMPORT_STATUSES.pending })
+        .select("-content")
+        .sort({ importedAt: -1, title: 1 })
+        .lean();
+    res.status(200).send(pending);
+};
+
+const approveImportedBook = async (req, res) => {
+    const { bookCode } = req.params;
+    const categoryCode = String(req.body.categoryCode || "").trim();
+    if (!isAssignableCategory(categoryCode)) {
+        throw new AppError(400, "יש לבחור קטגוריה: פנטזיה, רומנטיקה, מתח או נוער");
+    }
+
+    const book = await Book.findOne({ bookCode });
+    if (!book) {
+        throw new AppError(404, "Book not found");
+    }
+    if (book.importStatus !== IMPORT_STATUSES.pending) {
+        throw new AppError(400, "הספר אינו ממתין לאישור");
+    }
+
+    book.categoryCode = categoryCode;
+    book.importStatus = IMPORT_STATUSES.published;
+    await book.save();
+    res.status(200).send({ message: "הספר אושר", book });
+};
+
+const rejectImportedBook = async (req, res) => {
+    const { bookCode } = req.params;
+    const book = await Book.findOne({ bookCode });
+    if (!book) {
+        throw new AppError(404, "Book not found");
+    }
+    if (book.importStatus !== IMPORT_STATUSES.pending) {
+        throw new AppError(400, "הספר אינו ממתין לאישור");
+    }
+
+    book.importStatus = IMPORT_STATUSES.rejected;
+    await book.save();
+    res.status(200).send({ message: "הספר נדחה", bookCode: book.bookCode });
 };
 
 const deleteBook = async (req, res) => {
@@ -167,5 +221,8 @@ module.exports = wrapAsync({
     deleteBook,
     addNewBook,
     updateBook,
-    getBookByCode
+    getBookByCode,
+    getPendingImportedBooks,
+    approveImportedBook,
+    rejectImportedBook
 });

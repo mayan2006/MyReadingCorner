@@ -21,6 +21,7 @@ const FavoriteBooks = lazy(() => import("./Components/FavoriteBooks"));
 const SignUp = lazy(() => import("./Components/SignUp"));
 const Login = lazy(() => import("./Components/Login"));
 const ManagerSubjectApprovals = lazy(() => import("./Components/ManagerSubjectApprovals"));
+const ManagerImportedBooks = lazy(() => import("./Components/ManagerImportedBooks"));
 
 const NAV_HIDDEN_PATH_TESTERS = [
   /^\/books\/.+/,
@@ -30,6 +31,7 @@ const NAV_HIDDEN_PATH_TESTERS = [
   /^\/later$/,
   /^\/my-books$/,
   /^\/manager\/subjects$/,
+  /^\/manager\/books$/,
   /^\/FreeWriting(\/.*)?$/
 ];
 
@@ -169,6 +171,14 @@ function AppShell({
               element={
                 <ManagerRoute>
                   <ManagerSubjectApprovals />
+                </ManagerRoute>
+              }
+            />
+            <Route
+              path="/manager/books"
+              element={
+                <ManagerRoute>
+                  <ManagerImportedBooks />
                 </ManagerRoute>
               }
             />
